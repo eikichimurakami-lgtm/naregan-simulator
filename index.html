@@ -112,24 +112,25 @@
   footer .fsub{font-family:"Noto Serif JP",serif;color:var(--navy);font-size:12px;}
   footer .fline{font-family:"Noto Serif JP",serif;color:var(--ink);font-size:12.5px;margin-top:6px;}
   @media (prefers-reduced-motion: reduce){.seg{transition:none;}}
-  /* 読者クイズの入口 */
-  #quizGate{position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,var(--navy) 0%, var(--navy-deep) 100%);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:36px 16px 48px;}
-  #quizGate .box{max-width:520px;margin:0 auto;}
-  #quizGate h2{font-family:"Noto Serif JP",serif;color:#fff;font-size:20px;text-align:center;margin:0 0 10px;}
-  #quizGate .lead{color:#D7DCF2;font-size:13px;line-height:1.75;text-align:center;margin:0 0 22px;}
-  .qcard{background:var(--card);border-radius:14px;padding:16px 16px 14px;margin-bottom:12px;border:none;}
-  .qcard legend{float:left;width:100%;padding:0;margin:0 0 4px;}
-  .qcard .qno{display:block;font-size:11.5px;font-weight:700;color:var(--gold);letter-spacing:.06em;margin-bottom:4px;}
-  .qcard .qtext{display:block;font-size:14px;font-weight:700;color:var(--navy);line-height:1.65;}
-  .choice{clear:both;display:flex;gap:10px;align-items:flex-start;margin-top:8px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:#FBFAF7;font-size:13.5px;line-height:1.6;color:var(--ink);cursor:pointer;}
-  .choice input{width:18px;height:18px;margin:2px 0 0;accent-color:var(--navy);flex:none;}
-  .choice:has(input:checked){border-color:var(--gold);background:var(--gold-soft);}
-  .choice:has(input:focus-visible){box-shadow:0 0 0 3px var(--gold-soft);}
-  #quizSubmit{width:100%;margin-top:6px;padding:14px;background:var(--gold);color:var(--navy);border:none;border-radius:10px;font-family:"Noto Sans JP",sans-serif;font-size:15px;font-weight:700;cursor:pointer;}
-  #quizSubmit:disabled{opacity:.45;cursor:default;}
-  #quizGate .err{color:#F3B7A6;font-size:13px;line-height:1.7;text-align:center;margin:0 0 14px;}
-  #quizGate .err:empty{display:none;}
-  #quizGate .book{color:#EFE3C4;font-size:12px;margin-top:20px;text-align:center;font-family:"Noto Serif JP",serif;}
+  /* 合言葉の入口：メール登録 → 届いた合言葉を入力 */
+  #gate{position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,var(--navy) 0%, var(--navy-deep) 100%);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:36px 16px 48px;}
+  #gate .box{max-width:480px;margin:0 auto;}
+  #gate h2{font-family:"Noto Serif JP",serif;color:#fff;font-size:20px;text-align:center;margin:0 0 10px;}
+  #gate .lead{color:#D7DCF2;font-size:13px;line-height:1.75;text-align:center;margin:0 0 22px;}
+  .gcard{position:relative;background:var(--card);border-radius:14px;padding:18px 16px 16px;margin:0 0 14px;}
+  .gcard .step{display:block;font-size:11.5px;font-weight:700;color:var(--gold);letter-spacing:.06em;margin-bottom:4px;}
+  .gcard h3{font-size:14.5px;font-weight:700;color:var(--navy);margin:0 0 10px;line-height:1.6;}
+  .gcard .ginput{width:100%;font-family:"Noto Sans JP",sans-serif;font-size:16px;color:var(--navy);border:1.5px solid var(--line);border-radius:9px;padding:11px 12px;background:#FBFAF7;}
+  .gcard .agree{display:flex;gap:8px;align-items:flex-start;font-size:12px;line-height:1.65;color:var(--ink);margin:12px 0 0;cursor:pointer;}
+  .gcard .agree input{width:18px;height:18px;margin:1px 0 0;accent-color:var(--navy);flex:none;}
+  .gbtn{width:100%;margin-top:12px;padding:13px;background:var(--gold);color:var(--navy);border:none;border-radius:10px;font-family:"Noto Sans JP",sans-serif;font-size:15px;font-weight:700;cursor:pointer;}
+  .gbtn:disabled{opacity:.45;cursor:default;}
+  .gbtn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--gold-soft);}
+  .gmsg{font-size:12.5px;line-height:1.7;margin:10px 0 0;color:var(--ink-soft);}
+  .gmsg:empty{display:none;}
+  .gmsg.ok{color:var(--teal);font-weight:700;} .gmsg.ng{color:var(--danger);font-weight:700;}
+  .hp{position:absolute !important;left:-9999px;width:1px;height:1px;overflow:hidden;}
+  #gate .book{color:#EFE3C4;font-size:12px;margin-top:20px;text-align:center;font-family:"Noto Serif JP",serif;}
   body.locked{overflow:hidden;}
   body.locked > header, body.locked > .wrap{display:none;}
 
@@ -137,15 +138,29 @@
 </head>
 <body class="locked" data-mode="u70">
 
-<div id="quizGate">
+<div id="gate">
   <div class="box">
-    <h2>読者クイズ</h2>
-    <p class="lead">本書の読者限定のツールです。<br>『がんとお金の、ほんとうの話』から3問出題します。<br>すべて正解すると、シミュレーターが開きます。</p>
-    <p class="err" id="quizErr" role="alert"></p>
-    <form id="quizForm" novalidate>
-      <div id="quizList"></div>
-      <button type="submit" id="quizSubmit" disabled>答え合わせ</button>
+    <h2>読者限定シミュレーター</h2>
+    <p class="lead">本書の読者限定のツールです。<br>メールアドレスを登録すると、合言葉が届きます。<br>合言葉を入力すると、シミュレーターが開きます。</p>
+
+    <form class="gcard" id="regForm" novalidate>
+      <span class="step">STEP 1</span>
+      <h3>メールアドレスを登録する</h3>
+      <input type="email" class="ginput" id="regEmail" autocomplete="email" inputmode="email" placeholder="例）name@example.com" aria-label="メールアドレス">
+      <div class="hp" aria-hidden="true"><input type="text" id="regWebsite" tabindex="-1" autocomplete="off"></div>
+      <label class="agree"><input type="checkbox" id="regAgree"><span>合言葉と、本書・シミュレーターに関するお知らせをメールで受け取ることに同意します（いつでも配信を停止できます）。</span></label>
+      <button type="submit" class="gbtn" id="regBtn" disabled>合言葉を受け取る</button>
+      <p class="gmsg" id="regMsg" role="status"></p>
     </form>
+
+    <form class="gcard" id="codeForm" novalidate>
+      <span class="step">STEP 2</span>
+      <h3>届いた合言葉を入力する</h3>
+      <input type="text" class="ginput" id="codeInput" autocomplete="off" placeholder="合言葉" aria-label="合言葉">
+      <button type="submit" class="gbtn" id="codeBtn" disabled>シミュレーターを開く</button>
+      <p class="gmsg" id="codeMsg" role="alert"></p>
+    </form>
+
     <div class="book">『がんとお金の、ほんとうの話』守安俊明</div>
   </div>
 </div>
@@ -655,79 +670,15 @@
 </script>
 <script>
 (function(){
-  // 読者クイズの入口：『がんとお金の、ほんとうの話』クイズ（4択20問）からランダムに3問。全問正解で開く
-  // ※静的ページ内の簡易的な入口です。アクセス管理（セキュリティ）ではありません。
-  //   正解はそのまま書かず、ハッシュ値（h）だけを持たせています。
-  const PASS_KEY = "gankane_sim_quiz_passed_v1";
-  const ASK = 3;
-  const SALT = "naregan:";
-  const QUIZ = [
-    { id: 1, q: "著者・守安さんが切除不能膵がんの告知を受けたのは、何歳のときでしょう？",
-      c: { A: "60歳", B: "62歳", C: "64歳", D: "66歳" }, h: "12kzss9k1i3" },
-    { id: 2, q: "告知から14か月、領収書に記された医療費（10割）は約1,330万円。高額療養費の払い戻し後、著者が実際に負担した金額（食事代・文書料込み）はおよそいくら？",
-      c: { A: "約18万円", B: "約87万円", C: "約153万円", D: "約399万円" }, h: "16k561qnqil" },
-    { id: 3, q: "高額療養費の「多数回該当」とは、どんな仕組みでしょう？",
-      c: { A: "直近12か月で3回以上上限に達すると、4回目以降は上限額がさらに下がる", B: "同じ月に3つ以上の病院にかかると、上限額が下がる", C: "家族が3人以上同時に入院すると、上限額が下がる", D: "年に3回以上入院すると、医療費が無料になる" }, h: "aylg2c8rgt" },
-    { id: 4, q: "同じ月・同じ病院で「外来」と「入院」の両方を受けた場合、高額療養費の上限はどう計算される？",
-      c: { A: "外来と入院を必ず合算して、1つの上限で計算される", B: "入院分だけが対象で、外来は対象外", C: "外来分だけが対象で、入院は対象外", D: "外来と入院は別々に数えられ、上限を二回分負担する場合がある" }, h: "26e54du5qc2" },
-    { id: 5, q: "窓口での支払いを最初から上限額までに抑えるには、「限度額適用認定証」を提示するほかに、何を使う方法がある？",
-      c: { A: "運転免許証", B: "マイナ保険証", C: "がん保険の保険証券", D: "診察券" }, h: "26q9kxmsgy" },
-    { id: 6, q: "70歳未満・年収約370万〜770万円（区分ウ）の人が医療費100万円の治療を受けた場合、2026年8月以降の自己負担の目安は？",
-      c: { A: "約4.4万円", B: "約8.7万円", C: "約9.3万円", D: "約30万円" }, h: "17jtf2nsax2" },
-    { id: 7, q: "「先進医療」の技術料について、正しいものはどれ？",
-      c: { A: "3割負担で、高額療養費の対象になる", B: "1割負担で、高額療養費の対象になる", C: "全額自己負担だが、高額療養費の対象になる", D: "全額自己負担で、しかも高額療養費の対象外" }, h: "gmtlku7l55" },
-    { id: 8, q: "同じ「重粒子線治療」でも、保険が使える適応症なら自己負担は約96万円。では、先進医療のまま受けた場合の全額自己負担額はおよそいくら？",
-      c: { A: "約314万円", B: "約150万円", C: "約957万円", D: "約4,960万円" }, h: "vrqdx1fc1f" },
-    { id: 9, q: "本書でいう「65歳の壁」とは何のこと？",
-      c: { A: "65歳になると高額療養費制度が使えなくなること", B: "がん保険・共済の多くが、65歳を境に給付額が下がること", C: "65歳以上は粒子線治療を受けられないこと", D: "65歳になると医療費の窓口負担が1割になること" }, h: "qktpskipin" },
-    { id: 10, q: "病気で働けないときの「傷病手当金」について、正しいものはどれ？",
-      c: { A: "自営業者（国民健康保険）にも会社員と同じ額が支給される", B: "誰でも給与の全額が無期限で支給される", C: "会社員・公務員には支給される（給与の約3分の2・最長1年6か月）が、自営業者（国保）には原則ない", D: "65歳以上の人だけが受け取れる" }, h: "ear7jr6tsz" },
-    { id: 11, q: "入院時の「差額ベッド代」について、正しいものはどれ？",
-      c: { A: "個室に入ったら、理由を問わず必ず支払う", B: "高額療養費の対象になる", C: "大部屋でも必ずかかる", D: "患者が同意書にサインした場合にのみ発生し、治療上の必要や病院の都合で個室になった場合は支払う義務がない" }, h: "qzhz2si0i7" },
-    { id: 12, q: "2026年6月の改定後、入院中の食事代（一般所得区分）は1食いくら？",
-      c: { A: "550円", B: "270円", C: "1,000円", D: "1,650円" }, h: "1ketuwk6ar1" },
-    { id: 13, q: "著者が神戸で受けた「スペーサー留置術」の目的は何？",
-      c: { A: "抗がん剤を膵臓に直接届けるため", B: "膵臓と消化管（胃・十二指腸など）の間に距離を作り、高線量の照射を可能にするため", C: "がんを手術で切除するため", D: "血液ポートを体内に入れるため" }, h: "1er395hjs6v" },
-    { id: 14, q: "著者が兵庫県立粒子線医療センターで受けた陽子線治療の回数と線量は？",
-      c: { A: "全10回・50GyE", B: "全15回・60GyE", C: "全25回・82.5GyE", D: "全35回・100GyE" }, h: "1hhjpvevvyy" },
-    { id: 15, q: "膵がん（切除不能・局所進行）への粒子線治療が保険適用になったのはいつ？",
-      c: { A: "2007年", B: "2016年4月", C: "2019年", D: "2022年4月" }, h: "1dt2agmyrsi" },
-    { id: 16, q: "「全国どこに住んでいても、同じ質のがん治療が受けられるように」を出発点に、「がん対策基本法」が成立したのは何年？",
-      c: { A: "2006年", B: "1992年", C: "2014年", D: "2023年" }, h: "3xahajac5h" },
-    { id: 17, q: "アメリカでは、緩和ケアの対象は何によって決まると本書は紹介している？",
-      c: { A: "病名（がんかどうか）", B: "医師が「余命6か月以内」と診断したかどうか（状態）", C: "年齢（75歳以上かどうか）", D: "加入している民間保険の種類" }, h: "8v5f10j6yu" },
-    { id: 18, q: "「がん相談支援センター」について、正しいものはどれ？",
-      c: { A: "その病院に通院中のがん患者本人しか相談できない", B: "相談は有料で、1回1万円かかる", C: "がん患者でなくても、その病院にかかっていなくても無料で相談できる", D: "1992年から全国に設置されている" }, h: "4llw666t6l" },
-    { id: 19, q: "FP時代から著者が実践してきた書類整理のルール「書類のレッドカード」とは？",
-      c: { A: "一年使わなかった資料は、問答無用で退場（処分）", B: "赤い付箋を貼った書類だけを保管する", C: "10年たった書類はすべて捨てる", D: "家族に見せたくない書類を赤いファイルに入れる" }, h: "1zbxq09hodx" },
-    { id: 20, q: "検査で「小さくはなっていないが、大きくもなっていない（現状維持）」と報告した著者に、ジムの「レジェンド」がかけた言葉は？",
-      c: { A: "「まだ前半戦じゃ」", B: "「勝ち点3 じゃ」", C: "「延長戦に入っただけじゃ」", D: "「勝ち点1 じゃ、勝ちに等しい引き分けじゃ」" }, h: "3l6a5ibwo7" },
-  ];
+  // 合言葉の入口：メールアドレスを登録 → 自動返信で届く合言葉を入力 → シミュレーターが開く
+  // 登録・照合は Google Apps Script（GAS）のウェブアプリで受けます。合言葉はスプレッドシート側で管理。
+  // ※静的ページの簡易的な入口です。アクセス管理（セキュリティ）ではありません。
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbzQ_vGLgHm4AaJv6TBgOiW9OBjXG1f5b55WLi67fETKMXdGZ7if_MoRPv79Q7nSW8t-/exec"; // ← GASのウェブアプリURLに置き換える
+  const PASS_KEY = "gankane_sim_unlocked_v2";
+  const EMAIL_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+  const g = id => document.getElementById(id);
 
-  // 文字列ハッシュ（cyrb53）。正解の照合にだけ使う
-  function cyrb53(s, seed = 0){
-    let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
-    for (let i = 0, ch; i < s.length; i++){
-      ch = s.charCodeAt(i);
-      h1 = Math.imul(h1 ^ ch, 2654435761);
-      h2 = Math.imul(h2 ^ ch, 1597334677);
-    }
-    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507); h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507); h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-    return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
-  }
-  const isCorrect = (item, key) => cyrb53(SALT + item.id + ":" + key) === item.h;
-
-  function shuffle(arr){
-    const a = arr.slice();
-    for (let i = a.length - 1; i > 0; i--){
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
-
-  // 合格の記録：localStorage に残す（使えない環境では、そのタブの間だけ sessionStorage）
+  // 開けた記録：localStorage に残す（使えない環境では、そのタブの間だけ sessionStorage）
   function savePass(){
     try { localStorage.setItem(PASS_KEY, "1"); return; } catch(e){}
     try { sessionStorage.setItem(PASS_KEY, "1"); } catch(e){}
@@ -737,77 +688,71 @@
     try { if (sessionStorage.getItem(PASS_KEY) === "1") return true; } catch(e){}
     return false;
   }
-
-  const body = document.body;
-  const gate = document.getElementById("quizGate");
-  const form = document.getElementById("quizForm");
-  const list = document.getElementById("quizList");
-  const submit = document.getElementById("quizSubmit");
-  const err = document.getElementById("quizErr");
-  let current = [];
-  let lastIds = [];
-
   function unlock(){
-    body.classList.remove("locked");
-    gate.style.display = "none";
+    document.body.classList.remove("locked");
+    g("gate").style.display = "none";
+    window.scrollTo(0, 0);
   }
 
-  // 3問を選んで描く。直前と同じ組み合わせにならないよう、前回の問題はなるべく避ける
-  function deal(){
-    const fresh = QUIZ.filter(x => !lastIds.includes(x.id));
-    const pool = fresh.length >= ASK ? fresh : QUIZ;
-    current = shuffle(pool).slice(0, ASK);
-    lastIds = current.map(x => x.id);
-    list.innerHTML = "";
-    current.forEach((item, n) => {
-      const fs = document.createElement("fieldset");
-      fs.className = "qcard";
-      const lg = document.createElement("legend");
-      const no = document.createElement("span");
-      no.className = "qno"; no.textContent = "第" + (n + 1) + "問 / 全" + ASK + "問";
-      const qt = document.createElement("span");
-      qt.className = "qtext"; qt.textContent = item.q;
-      lg.append(no, qt);
-      fs.append(lg);
-      // 選択肢の並びも毎回入れ替える
-      shuffle(Object.keys(item.c)).forEach(key => {
-        const lab = document.createElement("label");
-        lab.className = "choice";
-        const r = document.createElement("input");
-        r.type = "radio"; r.name = "q" + item.id; r.value = key;
-        const t = document.createElement("span");
-        t.textContent = item.c[key];
-        lab.append(r, t);
-        fs.append(lab);
-      });
-      list.append(fs);
-    });
-    submit.disabled = true;
+  async function post(params){
+    const res = await fetch(GAS_URL, { method: "POST", body: new URLSearchParams(params) });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return res.json();
   }
+  function say(el, cls, text){ el.className = "gmsg" + (cls ? " " + cls : ""); el.textContent = text; }
 
-  form.addEventListener("change", () => {
-    submit.disabled = !current.every(item => form.querySelector('input[name="q' + item.id + '"]:checked'));
-  });
+  // STEP 1：メールアドレスの登録
+  const regEmail = g("regEmail"), regAgree = g("regAgree"), regBtn = g("regBtn"), regMsg = g("regMsg");
+  let sending = false;
+  const updateReg = () => { regBtn.disabled = sending || !(EMAIL_RE.test(regEmail.value.trim()) && regAgree.checked); };
+  regEmail.addEventListener("input", updateReg);
+  regAgree.addEventListener("change", updateReg);
 
-  form.addEventListener("submit", e => {
+  g("regForm").addEventListener("submit", async e => {
     e.preventDefault();
-    const ok = current.filter(item => {
-      const sel = form.querySelector('input[name="q' + item.id + '"]:checked');
-      return sel && isCorrect(item, sel.value);
-    }).length;
-    if (ok === current.length){
-      savePass();
-      unlock();
-      window.scrollTo(0, 0);
-      return;
+    if (regBtn.disabled) return;
+    sending = true; updateReg();
+    say(regMsg, "", "送信しています…");
+    try {
+      const r = await post({ action: "register", email: regEmail.value.trim(), website: g("regWebsite").value });
+      if (r.ok){
+        say(regMsg, "ok", "合言葉をメールでお送りしました。数分たっても届かない場合は、迷惑メールフォルダもご確認ください。");
+        g("codeInput").focus();
+      } else if (r.error === "invalid_email"){
+        say(regMsg, "ng", "メールアドレスの形式をご確認ください。");
+      } else {
+        say(regMsg, "ng", "ただいま送信できません。時間をおいて、もう一度お試しください。");
+      }
+    } catch(err){
+      say(regMsg, "ng", "通信できませんでした。電波の状態をご確認のうえ、もう一度お試しください。");
+    } finally {
+      sending = false; updateReg();
     }
-    // どの問題を間違えたかは示さず、別の3問に入れ替える
-    err.textContent = ASK + "問中" + ok + "問が正解でした。別の問題に変わりましたので、もう一度お試しください。";
-    deal();
-    gate.scrollTop = 0;
   });
 
-  if (hasPassed()) unlock(); else deal();
+  // STEP 2：合言葉の入力
+  const codeInput = g("codeInput"), codeBtn = g("codeBtn"), codeMsg = g("codeMsg");
+  let checking = false;
+  const updateCode = () => { codeBtn.disabled = checking || codeInput.value.trim() === ""; };
+  codeInput.addEventListener("input", updateCode);
+
+  g("codeForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    if (codeBtn.disabled) return;
+    checking = true; updateCode();
+    say(codeMsg, "", "確認しています…");
+    try {
+      const r = await post({ action: "verify", code: codeInput.value });
+      if (r.ok){ savePass(); unlock(); return; }
+      say(codeMsg, "ng", "合言葉が違います。メールに書かれた合言葉をご確認ください。");
+    } catch(err){
+      say(codeMsg, "ng", "通信できませんでした。時間をおいて、もう一度お試しください。");
+    } finally {
+      checking = false; updateCode();
+    }
+  });
+
+  if (hasPassed()) unlock();
 })();
 
 </script>
