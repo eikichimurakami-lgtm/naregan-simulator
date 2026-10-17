@@ -134,6 +134,25 @@
   body.locked{overflow:hidden;}
   body.locked > header, body.locked > .wrap{display:none;}
 
+  /* 項目の説明ポップアップ */
+  .has-help{cursor:pointer;}
+  .has-help > .help-t{text-decoration:underline dotted var(--teal);text-underline-offset:3px;}
+  .help-btn{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;margin-left:5px;vertical-align:1px;border-radius:50%;border:1.5px solid var(--teal);background:#fff;color:var(--teal);font-family:"Noto Sans JP",sans-serif;font-size:11px;font-weight:700;line-height:1;padding:0;cursor:pointer;flex:none;}
+  .help-btn:hover,.has-help:hover .help-btn{background:var(--teal);color:#fff;}
+  .help-btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--gold-soft);}
+  .days-row .help-btn{border-color:#fff;background:transparent;color:#fff;}
+  .help-hint{font-size:11.5px;color:var(--teal);margin:10px 0 0;line-height:1.6;}
+  .help-hint .help-btn{pointer-events:none;margin:0 2px;}
+  #helpPop{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(20,27,73,.45);}
+  #helpPop[hidden]{display:none;}
+  #helpPop .hp-box{position:relative;width:100%;max-width:520px;max-height:min(80vh,640px);overflow-y:auto;background:var(--card);border-radius:16px;padding:20px 20px 18px;box-shadow:0 12px 40px rgba(20,27,73,.25);}
+  #helpPop h4{font-family:"Noto Serif JP",serif;font-size:16px;color:var(--navy);margin:0 32px 12px 0;line-height:1.55;}
+  #helpPop .hp-sec{margin:0 0 12px;}
+  #helpPop .hp-lab{display:inline-block;font-size:11px;font-weight:700;color:var(--teal);background:var(--teal-soft);border-radius:999px;padding:2px 10px;margin-bottom:4px;}
+  #helpPop .hp-txt{font-size:13.5px;line-height:1.8;color:var(--ink);margin:0;white-space:pre-line;}
+  #helpPop .hp-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border:none;border-radius:50%;background:#F1EFE8;color:var(--navy);font-size:18px;line-height:1;cursor:pointer;}
+  #helpPop .hp-ok{width:100%;margin-top:4px;padding:11px;border:none;border-radius:10px;background:var(--navy);color:#fff;font-family:"Noto Sans JP",sans-serif;font-size:14px;font-weight:700;cursor:pointer;}
+  @media (max-width:520px){ #helpPop{align-items:flex-end;padding:0;} #helpPop .hp-box{max-width:none;border-radius:16px 16px 0 0;max-height:85vh;} }
 </style>
 </head>
 <body class="locked" data-mode="u70">
@@ -185,6 +204,7 @@
       <button type="button" data-mode="u70" aria-pressed="true">70歳未満<small>会社員／自営業者</small></button>
       <button type="button" data-mode="o70" aria-pressed="false">70歳以上<small>70〜74歳・75歳以上</small></button>
     </div>
+    <p class="help-hint"><span class="help-btn" aria-hidden="true">?</span>の付いた項目名をタップすると、何を入れればよいかの説明が出ます。</p>
   </div>
 
   <!-- ① 治療関連費用 -->
@@ -755,6 +775,412 @@
   if (hasPassed()) unlock();
 })();
 
+</script>
+
+<div id="helpPop" hidden role="dialog" aria-modal="true" aria-labelledby="hpTitle">
+  <div class="hp-box">
+    <button type="button" class="hp-close" aria-label="閉じる">×</button>
+    <h4 id="hpTitle"></h4>
+    <div id="hpBody"></div>
+    <button type="button" class="hp-ok">閉じる</button>
+  </div>
+</div>
+<script>
+(function(){
+  // 項目名をタップすると、わかりやすい説明をポップアップで出す
+  const HELP = {
+ "mode": {
+  "title": "入院するときの年齢",
+  "secs": [
+   [
+    "説明",
+    "70歳を境に、医療費の自己負担の上限と、病院の窓口で払う割合（何割負担か）が変わります。入院するときの年齢で選んでください。"
+   ],
+   [
+    "わからないとき",
+    "入院中に70歳になる方は、入院を始めるときの年齢で選んでください。"
+   ]
+  ]
+ },
+ "hokenType": {
+  "title": "加入している健康保険",
+  "secs": [
+   [
+    "選択肢",
+    "勤め先の健康保険（会社員・公務員など）／国民健康保険（自営業・フリーランスなど）"
+   ],
+   [
+    "説明",
+    "保険証（資格確認書）に書かれた保険の名前で選んでください。「協会けんぽ」「○○健康保険組合」「○○共済組合」なら勤め先の健康保険、「国民健康保険」なら国民健康保険です。"
+   ],
+   [
+    "わからないとき",
+    "家族の扶養に入っている方は、扶養している家族の保険で選んでください。パートやアルバイトで国民健康保険の方は「国民健康保険」です。"
+   ]
+  ]
+ },
+ "shotokuU_employee": {
+  "title": "所得区分",
+  "secs": [
+   [
+    "選択肢",
+    "ア（標準報酬月額83万円以上／年収の目安 約1,160万円〜）／イ（53万〜79万円／約770万〜1,160万円）／ウ（28万〜50万円／約370万〜770万円）／エ（26万円以下／〜約370万円）／オ（住民税がかからない方）"
+   ],
+   [
+    "説明",
+    "医療費の自己負担の上限を決める区分です。「標準報酬月額」で決まります。標準報酬月額は、毎年4〜6月の給与（残業代・通勤手当を含む、税金などを引く前の額）の平均をもとに決まる金額です。"
+   ],
+   [
+    "調べ方",
+    "毎年誕生月に届く「ねんきん定期便」に記載があります。勤め先の総務・人事部、または加入している健康保険に問い合わせても確認できます。"
+   ],
+   [
+    "わからないとき",
+    "年収の目安で選んでください。"
+   ]
+  ]
+ },
+ "shotokuU_self": {
+  "title": "所得区分",
+  "secs": [
+   [
+    "選択肢",
+    "ア（901万円を超える）／イ（600万円を超え、901万円以下）／ウ（210万円を超え、600万円以下）／エ（210万円以下）／オ（住民税がかからない世帯）"
+   ],
+   [
+    "説明",
+    "医療費の自己負担の上限を決める区分です。去年の所得（売上から経費を引いた額）から43万円を引いた金額で決まります。国民健康保険は世帯単位なので、同じ世帯で国民健康保険に入っている家族の分も合計します。"
+   ],
+   [
+    "調べ方",
+    "国民健康保険料（税）の通知書、または確定申告書で確認できます。下の「確定申告の所得から区分を調べる」を使うと自動で選ばれます。"
+   ],
+   [
+    "例",
+    "所得500万円の方（家族はほかの保険）：500万円−43万円＝457万円 → ウ"
+   ]
+  ]
+ },
+ "shotokuHonnin": {
+  "title": "あなたの去年の所得",
+  "secs": [
+   [
+    "説明",
+    "売上（収入）ではなく、経費や青色申告特別控除を引いた後の「所得」の金額です。"
+   ],
+   [
+    "調べ方",
+    "去年の確定申告書（第一表）の「所得金額等」の「合計」欄に書かれています。"
+   ],
+   [
+    "例",
+    "売上800万円、経費300万円、青色申告特別控除65万円 → 435万円"
+   ]
+  ]
+ },
+ "shotokuSetai": {
+  "title": "同じ世帯で国民健康保険に入っている家族の所得（合計）",
+  "secs": [
+   [
+    "説明",
+    "配偶者や子どもなど、あなたと同じ国民健康保険に入っている家族の、去年の所得の合計です。会社の健康保険に入っている家族の分は入れません。"
+   ],
+   [
+    "わからないとき",
+    "家族に所得がない、または家族がほかの保険に入っている場合は0円です。"
+   ]
+  ]
+ },
+ "setaiNinzu": {
+  "title": "その家族の人数",
+  "secs": [
+   [
+    "説明",
+    "あなたを除いて、同じ世帯で国民健康保険に入っている家族の人数です。"
+   ],
+   [
+    "わからないとき",
+    "国民健康保険に入っているのがあなただけなら0人です。"
+   ]
+  ]
+ },
+ "age": {
+  "title": "年齢",
+  "secs": [
+   [
+    "説明",
+    "75歳になると、保険が「後期高齢者医療制度」に切り替わり、窓口で払う割合などが変わります。入院するときの年齢で選んでください。"
+   ]
+  ]
+ },
+ "shotokuO": {
+  "title": "所得区分",
+  "secs": [
+   [
+    "選択肢",
+    "現役並みⅢ（年収の目安 約1,160万円〜）／現役並みⅡ（約770万〜1,160万円）／現役並みⅠ（約370万〜770万円）／一般（〜約370万円）／住民税非課税Ⅱ（世帯全員が住民税非課税）／住民税非課税Ⅰ（世帯全員が住民税非課税で、所得がない。年金収入だけなら約80万円以下）"
+   ],
+   [
+    "説明",
+    "医療費の自己負担の上限を決める区分です。住民税の計算に使う所得（課税所得）で決まります。"
+   ],
+   [
+    "調べ方",
+    "保険証（資格確認書）に書かれた負担割合が「3割」なら現役並みです。「1割」「2割」で住民税を払っている方は一般です。くわしくは、住民税の通知書、またはお住まいの市区町村の窓口で確認できます。"
+   ],
+   [
+    "わからないとき",
+    "一般を選んでください。"
+   ]
+  ]
+ },
+ "futan": {
+  "title": "病院の窓口で払う割合",
+  "secs": [
+   [
+    "説明",
+    "医療費のうち、病院の窓口で自分が払う割合です。年齢と所得区分から自動で入ります。"
+   ],
+   [
+    "調べ方",
+    "保険証（資格確認書）に「負担割合」として書かれています。違っていたら、書かれている割合に選び直してください。"
+   ]
+  ]
+ },
+ "tasuu": {
+  "title": "これまでの1年間に、医療費が上限に達した月が3回以上ある",
+  "secs": [
+   [
+    "説明",
+    "過去12か月のうち、医療費の自己負担が上限額に達した月が3回以上あれば、4回目からは上限額がさらに下がります（多数回該当）。"
+   ],
+   [
+    "調べ方",
+    "加入している健康保険から届く「高額療養費の支給決定通知書」で確認できます。"
+   ],
+   [
+    "わからないとき",
+    "今回が初めての入院なら、チェックは不要です。途中で加入する保険が変わった場合は、回数は数え直しになります。"
+   ]
+  ]
+ },
+ "iryouhi": {
+  "title": "1か月にかかる医療費（全額）",
+  "secs": [
+   [
+    "説明",
+    "あなたが窓口で払う額（3割など）ではなく、健康保険から支払われる分も含めた医療費の全額です。差額ベッド代・食事代・先進医療の費用は含めません。"
+   ],
+   [
+    "調べ方",
+    "病院の領収書の「合計点数」に10をかけた金額です（例：50,000点→50万円）。入院前なら、病院の医事課や入退院窓口で目安を聞けます。"
+   ],
+   [
+    "わからないとき",
+    "100万円のままで構いません。上限額があるので、多くの場合、結果は大きく変わりません。"
+   ]
+  ]
+ },
+ "nissu": {
+  "title": "入院する日数（見込み）",
+  "secs": [
+   [
+    "説明",
+    "今回の入院が何日くらい続くかの見込みです。主治医や病院の説明で聞いた日数を入れてください。"
+   ],
+   [
+    "わからないとき",
+    "15日のままで構いません（がんの平均的な入院日数です）。"
+   ]
+  ]
+ },
+ "heyaType": {
+  "title": "入院する部屋",
+  "secs": [
+   [
+    "説明",
+    "個室などを希望すると、1日ごとに「差額ベッド代」がかかります。金額は全国の平均です。"
+   ],
+   [
+    "調べ方",
+    "病院の入院案内やホームページの「室料差額」の料金表で確認できます。希望する部屋の金額がわかれば「自由入力」で入れてください。"
+   ],
+   [
+    "わからないとき",
+    "希望しなければ、差額ベッド代のかからない大部屋が基本です。"
+   ]
+  ]
+ },
+ "beddai": {
+  "title": "差額ベッド代（1日あたり）",
+  "secs": [
+   [
+    "説明",
+    "個室などに入ったときにかかる部屋代です。健康保険はきかず、医療費の上限の対象にもなりません。"
+   ],
+   [
+    "大切なこと",
+    "差額ベッド代は、あなたが「同意書」にサインした場合にだけかかります。治療のためや、病院の都合（大部屋が空いていないなど）で個室になった場合は、払う必要はありません。"
+   ]
+  ]
+ },
+ "shokuji": {
+  "title": "入院中の食事代（1日あたり）",
+  "secs": [
+   [
+    "説明",
+    "入院中の食事代は全国一律で、1食550円（1日3食で1,650円）です。"
+   ],
+   [
+    "住民税がかからない方",
+    "申請すると1食270円（1日810円）に下がります。入院が90日を超えると1食220円、70歳以上で所得の少ない方は1食130円です。該当する方は金額を入れ直してください。"
+   ]
+  ]
+ },
+ "sonota": {
+  "title": "そのほかの出費（1日あたり）",
+  "secs": [
+   [
+    "説明",
+    "パジャマ・タオルのレンタル、テレビカード、スマホの通信費、家族のお見舞いの交通費など、入院中にかかる身の回りの出費です。"
+   ],
+   [
+    "例",
+    "入院セットのレンタル1日500円＋テレビカード1日300円＋家族の交通費（往復1,000円を週3回）→ 約1,200円"
+   ],
+   [
+    "わからないとき",
+    "1日1,000〜2,000円が目安です。"
+   ]
+  ]
+ },
+ "jigyoKotei": {
+  "title": "休業中も出ていくお金（1日あたり）",
+  "secs": [
+   [
+    "説明",
+    "入院で仕事を休んでいる間も払い続ける、お店や事務所の家賃、リース料、生活費などです。自営業の方には、会社員のような休業中の手当（傷病手当金）が原則ありません。"
+   ],
+   [
+    "入れ方",
+    "1か月分の金額を30で割って入れてください。"
+   ],
+   [
+    "例",
+    "1か月に9万円 → 3,000円"
+   ]
+  ]
+ },
+ "sentan": {
+  "title": "先進医療の費用（総額）",
+  "secs": [
+   [
+    "説明",
+    "先進医療は、国が認めた、まだ健康保険のきかない高度な治療です。技術料は全額自己負担で、医療費の上限の対象にもなりません。"
+   ],
+   [
+    "わからないとき",
+    "先進医療を受ける予定がなければ0円のままにしてください。受ける場合は、病院から示された金額を入れてください（例：粒子線治療 約270万〜320万円）。"
+   ]
+  ]
+ },
+ "tokuyaku": {
+  "title": "保険から受け取れる先進医療の給付",
+  "secs": [
+   [
+    "説明",
+    "医療保険・がん保険に「先進医療特約」を付けていると、先進医療の費用が保険から支払われます。"
+   ],
+   [
+    "調べ方",
+    "保険証券、または保険会社から毎年届く「契約内容のお知らせ」で確認できます。"
+   ],
+   [
+    "わからないとき",
+    "特約を付けていなければ0円です。"
+   ]
+  ]
+ },
+ "stayDays": {
+  "title": "入院日数",
+  "secs": [
+   [
+    "説明",
+    "上で入れた入院日数が自動で入ります。1日あたりの金額に、この日数をかけて、入院期間全体の合計額を出します。"
+   ]
+  ]
+ }
+};
+  const pop = document.getElementById("helpPop");
+  const box = pop.querySelector(".hp-box");
+  let lastFocus = null;
+
+  function open(key){
+    const h = HELP[key]; if (!h) return;
+    document.getElementById("hpTitle").textContent = h.title;
+    const body = document.getElementById("hpBody");
+    body.innerHTML = "";
+    h.secs.forEach(([lab, txt]) => {
+      const d = document.createElement("div"); d.className = "hp-sec";
+      const l = document.createElement("span"); l.className = "hp-lab"; l.textContent = lab;
+      const t = document.createElement("p"); t.className = "hp-txt"; t.textContent = lab === "選択肢" ? txt.split("／").map(x => "・" + x).join("\n") : txt;
+      d.append(l, t); body.append(d);
+    });
+    lastFocus = document.activeElement;
+    pop.hidden = false; box.scrollTop = 0;
+    document.documentElement.style.overflow = "hidden";
+    pop.querySelector(".hp-close").focus();
+  }
+  function close(){
+    pop.hidden = true;
+    document.documentElement.style.overflow = "";
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  pop.addEventListener("click", e => { if (e.target === pop || e.target.closest(".hp-close,.hp-ok")) close(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !pop.hidden) close(); });
+
+  function makeBtn(key, name){
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "help-btn"; b.textContent = "?";
+    b.setAttribute("aria-label", name + "の説明を見る");
+    b.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); open(typeof key === "function" ? key() : key); });
+    return b;
+  }
+
+  // 項目名（.field-label）全体をタップ可能にする
+  function wireLabel(label, key){
+    if (!label || label.dataset.help) return;
+    label.dataset.help = "1";
+    const first = label.firstChild;                // 項目名のテキスト
+    const span = document.createElement("span"); span.className = "help-t";
+    span.textContent = first.textContent; label.replaceChild(span, first);
+    const name = span.textContent;
+    label.insertBefore(makeBtn(key, name), span.nextSibling);
+    label.classList.add("has-help");
+    label.addEventListener("click", () => open(typeof key === "function" ? key() : key));
+  }
+  const labelOf = id => { const el = document.getElementById(id); const row = el && el.closest(".field-row"); return row && row.querySelector(".field-label"); };
+
+  const byId = {
+    hokenType: "hokenType",
+    shotokuU: () => document.getElementById("hokenType").value === "self" ? "shotokuU_self" : "shotokuU_employee",
+    shotokuHonnin: "shotokuHonnin", shotokuSetai: "shotokuSetai", setaiNinzu: "setaiNinzu",
+    age: "age", shotokuO: "shotokuO", futan: "futan",
+    iryouhi: "iryouhi", nissu: "nissu", heyaType: "heyaType", beddai: "beddai", shokuji: "shokuji",
+    sonota: "sonota", jigyoKotei: "jigyoKotei", sentan: "sentan", tokuyaku: "tokuyaku",
+  };
+  Object.entries(byId).forEach(([id, key]) => wireLabel(labelOf(id), key));
+
+  // 年齢の選択（見出し）
+  const q = document.querySelector(".mode-pick .q");
+  if (q) q.append(makeBtn("mode", "年齢の選択"));
+  // 多数回該当（チェックボックスの文言。ボタンだけにしてチェックの操作は変えない）
+  const tasuuSpan = document.getElementById("tasuu").nextElementSibling;
+  if (tasuuSpan) tasuuSpan.insertBefore(makeBtn("tasuu", "多数回該当"), tasuuSpan.querySelector("small"));
+  // 結果欄の入院日数
+  const dl = document.querySelector('.days-row label[for="stayDays"]');
+  if (dl) dl.append(makeBtn("stayDays", "入院日数"));
+})();
 </script>
 </body>
 </html>
