@@ -129,6 +129,11 @@
   .gmsg{font-size:12.5px;line-height:1.7;margin:10px 0 0;color:var(--ink-soft);}
   .gmsg:empty{display:none;}
   .gmsg.ok{color:var(--teal);font-weight:700;} .gmsg.ng{color:var(--danger);font-weight:700;}
+  .gnote{list-style:none;margin:10px 0 0;padding:10px 12px;background:#FBFAF7;border:1px solid var(--line);border-radius:9px;}
+  .gnote li{position:relative;padding-left:1.1em;font-size:11.5px;line-height:1.7;color:var(--ink-soft);}
+  .gnote li + li{margin-top:3px;}
+  .gnote li::before{content:"※";position:absolute;left:0;}
+  .gnote b{color:var(--ink);font-weight:700;}
   .hp{position:absolute !important;left:-9999px;width:1px;height:1px;overflow:hidden;}
   #gate .book{color:#EFE3C4;font-size:12px;margin-top:20px;text-align:center;font-family:"Noto Serif JP",serif;}
   body.locked{overflow:hidden;}
@@ -166,6 +171,13 @@
       <span class="step">STEP 1</span>
       <h3>メールアドレスを登録する</h3>
       <input type="email" class="ginput" id="regEmail" autocomplete="email" inputmode="email" placeholder="例）name@example.com" aria-label="メールアドレス">
+      <ul class="gnote" id="regNote">
+        <li>合言葉は <b>gantookane@gmail.com</b> からお送りします。迷惑メールフォルダに入ってしまうことがあるため、届かない場合はご確認ください。</li>
+        <li>迷惑メール対策をしている方は、このアドレスからのメールを受け取れるよう設定してください。</li>
+        <li>携帯電話会社のメールアドレス（docomo・au・SoftBankなど）は、受信設定によって届かない場合があります。Gmailなどのアドレスがおすすめです。</li>
+        <li>10分ほどたっても届かない場合は、メールアドレスに入力ミスがないかご確認のうえ、もう一度お試しください。</li>
+        <li>ご入力いただいたメールアドレスは、合言葉と、本書・シミュレーターに関するお知らせの送付にのみ使用します。</li>
+      </ul>
       <div class="hp" aria-hidden="true"><input type="text" id="regWebsite" tabindex="-1" autocomplete="off"></div>
       <label class="agree"><input type="checkbox" id="regAgree"><span>合言葉と、本書・シミュレーターに関するお知らせをメールで受け取ることに同意します（いつでも配信を停止できます）。</span></label>
       <button type="submit" class="gbtn" id="regBtn" disabled>合言葉を受け取る</button>
