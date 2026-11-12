@@ -3,7 +3,166 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>入院時の必要金額シミュレーター（70歳未満／70歳以上）―『がんとお金の、ほんとうの話』</title>
+<title>入院時の必要金額シミュレーター ―『がんとお金の、ほんとうの話』</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#1E2761; --navy-deep:#141B49; --ivory:#F7F5EF; --card:#FFFFFF;
+    --gold:#C89B3C; --gold-soft:#F1E3C4; --teal:#2D6A6A; --teal-soft:#E4EFEE;
+    --ink:#26314D; --ink-soft:#6B7280; --line:#E3E1D8; --danger:#B5533C;
+    --bar-h:52px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--ivory);color:var(--ink);font-family:"Noto Sans JP",sans-serif;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:640px;margin:0 auto;padding:0 20px;}
+  .hidden{display:none !important;}
+
+  /* 合言葉ゲート（各シミュレーターと同じもの） */
+  /* 合言葉の入口：メール登録 → 届いた合言葉を入力 */
+  #gate{position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,var(--navy) 0%, var(--navy-deep) 100%);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:36px 16px 48px;}
+  #gate .box{max-width:480px;margin:0 auto;}
+  #gate h2{font-family:"Noto Serif JP",serif;color:#fff;font-size:20px;text-align:center;margin:0 0 10px;}
+  #gate .lead{color:#D7DCF2;font-size:13px;line-height:1.75;text-align:center;margin:0 0 22px;}
+  .gcard{position:relative;background:var(--card);border-radius:14px;padding:18px 16px 16px;margin:0 0 14px;}
+  .gcard .step{display:block;font-size:11.5px;font-weight:700;color:var(--gold);letter-spacing:.06em;margin-bottom:4px;}
+  .gcard h3{font-size:14.5px;font-weight:700;color:var(--navy);margin:0 0 10px;line-height:1.6;}
+  .gcard .ginput{width:100%;font-family:"Noto Sans JP",sans-serif;font-size:16px;color:var(--navy);border:1.5px solid var(--line);border-radius:9px;padding:11px 12px;background:#FBFAF7;}
+  .gcard .agree{display:flex;gap:8px;align-items:flex-start;font-size:12px;line-height:1.65;color:var(--ink);margin:12px 0 0;cursor:pointer;}
+  .gcard .agree input{width:18px;height:18px;margin:1px 0 0;accent-color:var(--navy);flex:none;}
+  .gbtn{width:100%;margin-top:12px;padding:13px;background:var(--gold);color:var(--navy);border:none;border-radius:10px;font-family:"Noto Sans JP",sans-serif;font-size:15px;font-weight:700;cursor:pointer;}
+  .gbtn:disabled{opacity:.45;cursor:default;}
+  .gbtn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--gold-soft);}
+  .gmsg{font-size:12.5px;line-height:1.7;margin:10px 0 0;color:var(--ink-soft);}
+  .gmsg:empty{display:none;}
+  .gmsg.ok{color:var(--teal);font-weight:700;} .gmsg.ng{color:var(--danger);font-weight:700;}
+  .gnote{list-style:none;margin:10px 0 0;padding:10px 12px;background:#FBFAF7;border:1px solid var(--line);border-radius:9px;}
+  .gnote li{position:relative;padding-left:1.1em;font-size:11.5px;line-height:1.7;color:var(--ink-soft);}
+  .gnote li + li{margin-top:3px;}
+  .gnote li::before{content:"※";position:absolute;left:0;}
+  .gnote b{color:var(--ink);font-weight:700;}
+  .hp{position:absolute !important;left:-9999px;width:1px;height:1px;overflow:hidden;}
+  #gate .book{color:#EFE3C4;font-size:12px;margin-top:20px;text-align:center;font-family:"Noto Serif JP",serif;}
+  body.locked{overflow:hidden;}
+  body.locked #menu, body.locked #app{display:none;}
+
+  /* タイプ選択画面 */
+  header{background:linear-gradient(160deg,var(--navy) 0%, var(--navy-deep) 100%);color:#fff;padding:36px 0 30px;position:relative;overflow:hidden;}
+  header::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle, rgba(200,155,60,0.35), transparent 70%);}
+  .eyebrow{font-size:12.5px;letter-spacing:.08em;color:var(--gold);font-weight:700;margin-bottom:10px;}
+  h1{font-family:"Noto Serif JP",serif;font-size:26px;line-height:1.5;font-weight:700;margin:0 0 10px;}
+  header p{font-size:13.5px;line-height:1.75;color:#D7DCF2;margin:0;max-width:46ch;}
+  .book-tag{display:inline-block;margin-top:16px;font-size:12px;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:5px 12px;color:#EFE3C4;}
+  .section-title{font-family:"Noto Serif JP",serif;font-size:16.5px;font-weight:700;color:var(--navy);margin:30px 0 4px;}
+  .section-sub{font-size:12.5px;color:var(--ink-soft);margin:0 0 14px;line-height:1.7;}
+  .group-label{font-size:12.5px;font-weight:700;color:var(--teal);margin:20px 2px 8px;letter-spacing:.04em;}
+  .type-card{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:16px 16px;margin-bottom:12px;cursor:pointer;font-family:inherit;color:inherit;box-shadow:0 1px 2px rgba(20,27,73,0.03);transition:border-color .15s, box-shadow .15s;}
+  .type-card:hover,.type-card:focus-visible{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-soft);outline:none;}
+  .type-card .num-badge{flex:none;width:34px;height:34px;border-radius:9px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-family:"Noto Serif JP",serif;font-weight:700;font-size:16px;}
+  .type-card .tx{flex:1;min-width:0;}
+  .type-card .tt{display:block;font-size:15px;font-weight:700;color:var(--navy);line-height:1.5;}
+  .type-card .td{display:block;font-size:12.5px;color:var(--ink-soft);line-height:1.65;margin-top:3px;}
+  .type-card .rec{display:inline-block;font-size:11px;font-weight:700;color:var(--navy);background:var(--gold-soft);border-radius:999px;padding:2px 9px;margin-left:6px;vertical-align:2px;}
+  .type-card .arrow{flex:none;color:var(--gold);font-size:20px;font-weight:700;}
+  .note{margin-top:18px;font-size:12px;line-height:1.9;color:var(--ink-soft);background:var(--teal-soft);border-radius:12px;padding:14px 16px;}
+  .note b{color:var(--teal);}
+  footer{margin:36px 0 40px;text-align:center;font-size:11.5px;color:var(--ink-soft);line-height:2;}
+  footer .fbook{font-family:"Noto Serif JP",serif;color:var(--navy);font-weight:700;font-size:14px;}
+
+  /* シミュレーター表示 */
+  #app{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--ivory);}
+  #typeBar{flex:none;height:var(--bar-h);background:var(--navy-deep);color:#fff;display:flex;align-items:center;gap:10px;padding:0 12px;box-shadow:0 2px 10px rgba(0,0,0,.15);z-index:2;}
+  #typeBar .back{flex:none;min-height:38px;padding:0 12px;border:1px solid rgba(255,255,255,.35);border-radius:9px;background:transparent;color:#EFE3C4;font-family:"Noto Sans JP",sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
+  #typeBar label{font-size:11.5px;color:#C9CFEC;white-space:nowrap;}
+  #typeSelect{flex:1;min-width:0;max-width:340px;min-height:38px;font-family:"Noto Sans JP",sans-serif;font-size:14px;font-weight:700;color:var(--navy);border:none;border-radius:9px;padding:6px 10px;background:#fff;}
+  #typeSelect:focus{outline:3px solid var(--gold);}
+  #frames{flex:1;position:relative;}
+  #frames iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--ivory);}
+  @media (max-width:420px){ #typeBar label{display:none;} }
+</style>
+</head>
+<body class="locked">
+
+<div id="gate">
+  <div class="box">
+    <h2>読者限定シミュレーター</h2>
+    <p class="lead">本書の読者限定のツールです。<br>本書に記載の合言葉を入力すると、シミュレーターが開きます。<br>一度入力すれば、次回からは入力せずに開けます。</p>
+
+    <form class="gcard" id="codeForm" novalidate>
+      <span class="step">STEP 1</span>
+      <h3>本書に記載の合言葉を入力する</h3>
+      <input type="text" class="ginput" id="codeInput" autocomplete="off" placeholder="合言葉" aria-label="合言葉">
+      <button type="submit" class="gbtn" id="codeBtn" disabled>シミュレーターを開く</button>
+      <p class="gmsg" id="codeMsg" role="alert"></p>
+    </form>
+
+    <div class="book">『がんとお金の、ほんとうの話』守安俊明</div>
+  </div>
+</div>
+
+<div id="menu">
+  <header>
+    <div class="wrap">
+      <div class="eyebrow">がん保険・医療保険は、1日いくらあれば足りる？</div>
+      <h1>入院時の必要金額<br>シミュレーター</h1>
+      <p>入院すると、1日あたりいくらお金が出ていくのか。その目安を出すツールです。まず、あなたに合うタイプを選んでください。あとから画面上のメニューで切り替えることもできます。</p>
+      <div class="book-tag">『がんとお金の、ほんとうの話』守安俊明</div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="section-title">あなたに合うタイプを選ぶ</div>
+    <p class="section-sub">年齢と、入っている健康保険で選びます。</p>
+
+    <div class="group-label">70歳未満の方</div>
+    <button type="button" class="type-card" data-type="kaisha">
+      <span class="num-badge">1</span>
+      <span class="tx"><span class="tt">会社員版</span><span class="td">会社の健康保険（協会けんぽ・健保組合・共済組合）に入っている会社員・公務員と、その扶養家族の方向け。毎月のお給料の額から上限額を出します。</span></span>
+      <span class="arrow">›</span>
+    </button>
+    <button type="button" class="type-card" data-type="self">
+      <span class="num-badge">2</span>
+      <span class="tx"><span class="tt">自営業・フリーランス版</span><span class="td">国民健康保険に入っている自営業・フリーランスの方向け。確定申告書の所得から上限額を出します。</span></span>
+      <span class="arrow">›</span>
+    </button>
+
+    <div class="group-label">70歳以上の方</div>
+    <button type="button" class="type-card" data-type="senior">
+      <span class="num-badge">3</span>
+      <span class="tx"><span class="tt">70歳以上版</span><span class="td">70〜74歳・75歳以上の方向け。窓口で払う割合（1〜3割）や上限額の決まり方が70歳未満と違います。</span></span>
+      <span class="arrow">›</span>
+    </button>
+
+    <div class="note">使い方は本書の資料編の巻頭に、制度のくわしい説明は資料編3章・4章にあります。</div>
+
+    <footer>
+      <div class="fbook">『がんとお金の、ほんとうの話』</div>
+      <div>守安俊明</div>
+    </footer>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <div id="typeBar">
+    <button type="button" class="back" id="backBtn">‹ タイプ選択</button>
+    <label for="typeSelect">表示中：</label>
+    <select id="typeSelect" aria-label="シミュレーターのタイプ">
+      <option value="kaisha">会社員版（70歳未満）</option>
+      <option value="self">自営業・フリーランス版（70歳未満）</option>
+      <option value="senior">70歳以上版</option>
+    </select>
+  </div>
+  <div id="frames"></div>
+</div>
+
+<script type="text/plain" id="src-kaisha"><!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>入院時の必要金額シミュレーター（会社員版・70歳未満）―『がんとお金の、ほんとうの話』</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -63,17 +222,6 @@
   .helper-result{font-size:12.5px;color:var(--ink);padding:8px 0 12px;line-height:1.7;}
   .helper-result b{color:var(--navy);}
   .hidden{display:none !important;}
-  /* 年齢による切り替え：body[data-mode] に合わせて片方だけ表示 */
-  body[data-mode="u70"] .only-o70, body[data-mode="o70"] .only-u70{display:none !important;}
-  .mode-pick{margin:26px 0 0;background:var(--card);border:1.5px solid var(--gold);border-radius:16px;padding:16px 16px 14px;}
-  .mode-pick .q{font-family:"Noto Serif JP",serif;font-size:15px;font-weight:700;color:var(--navy);margin:0 0 4px;}
-  .mode-pick .q-sub{font-size:12px;color:var(--ink-soft);margin:0 0 12px;line-height:1.6;}
-  .seg-ctrl{display:flex;gap:8px;}
-  .seg-ctrl button{flex:1 1 0;min-width:0;padding:12px 8px;border:1.5px solid var(--line);border-radius:11px;background:#FBFAF7;color:var(--navy);font-family:"Noto Sans JP",sans-serif;font-size:15px;font-weight:700;line-height:1.35;cursor:pointer;}
-  .seg-ctrl button small{display:block;font-size:11px;font-weight:500;color:var(--ink-soft);margin-top:2px;}
-  .seg-ctrl button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff;}
-  .seg-ctrl button[aria-pressed="true"] small{color:#D7DCF2;}
-  .seg-ctrl button:focus-visible{outline:none;box-shadow:0 0 0 3px var(--gold-soft);border-color:var(--gold);}
   .stackwrap{margin:30px 0 8px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 20px 22px;}
   .stackwrap h3{font-family:"Noto Serif JP",serif;font-size:15px;color:var(--navy);margin:0 0 14px;}
   .bar-track{width:100%;height:26px;border-radius:8px;overflow:hidden;display:flex;background:#EFEDE5;box-shadow:inset 0 1px 2px rgba(0,0,0,.05);}
@@ -112,391 +260,254 @@
   footer .fsub{font-family:"Noto Serif JP",serif;color:var(--navy);font-size:12px;}
   footer .fline{font-family:"Noto Serif JP",serif;color:var(--ink);font-size:12.5px;margin-top:6px;}
   @media (prefers-reduced-motion: reduce){.seg{transition:none;}}
-  /* 合言葉の入口：メール登録 → 届いた合言葉を入力 */
-  #gate{position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,var(--navy) 0%, var(--navy-deep) 100%);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:36px 16px 48px;}
-  #gate .box{max-width:480px;margin:0 auto;}
-  #gate h2{font-family:"Noto Serif JP",serif;color:#fff;font-size:20px;text-align:center;margin:0 0 10px;}
-  #gate .lead{color:#D7DCF2;font-size:13px;line-height:1.75;text-align:center;margin:0 0 22px;}
-  .gcard{position:relative;background:var(--card);border-radius:14px;padding:18px 16px 16px;margin:0 0 14px;}
-  .gcard .step{display:block;font-size:11.5px;font-weight:700;color:var(--gold);letter-spacing:.06em;margin-bottom:4px;}
-  .gcard h3{font-size:14.5px;font-weight:700;color:var(--navy);margin:0 0 10px;line-height:1.6;}
-  .gcard .ginput{width:100%;font-family:"Noto Sans JP",sans-serif;font-size:16px;color:var(--navy);border:1.5px solid var(--line);border-radius:9px;padding:11px 12px;background:#FBFAF7;}
-  .gcard .agree{display:flex;gap:8px;align-items:flex-start;font-size:12px;line-height:1.65;color:var(--ink);margin:12px 0 0;cursor:pointer;}
-  .gcard .agree input{width:18px;height:18px;margin:1px 0 0;accent-color:var(--navy);flex:none;}
-  .gbtn{width:100%;margin-top:12px;padding:13px;background:var(--gold);color:var(--navy);border:none;border-radius:10px;font-family:"Noto Sans JP",sans-serif;font-size:15px;font-weight:700;cursor:pointer;}
-  .gbtn:disabled{opacity:.45;cursor:default;}
-  .gbtn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--gold-soft);}
-  .gmsg{font-size:12.5px;line-height:1.7;margin:10px 0 0;color:var(--ink-soft);}
-  .gmsg:empty{display:none;}
-  .gmsg.ok{color:var(--teal);font-weight:700;} .gmsg.ng{color:var(--danger);font-weight:700;}
-  .gnote{list-style:none;margin:10px 0 0;padding:10px 12px;background:#FBFAF7;border:1px solid var(--line);border-radius:9px;}
-  .gnote li{position:relative;padding-left:1.1em;font-size:11.5px;line-height:1.7;color:var(--ink-soft);}
-  .gnote li + li{margin-top:3px;}
-  .gnote li::before{content:"※";position:absolute;left:0;}
-  .gnote b{color:var(--ink);font-weight:700;}
-  .hp{position:absolute !important;left:-9999px;width:1px;height:1px;overflow:hidden;}
-  #gate .book{color:#EFE3C4;font-size:12px;margin-top:20px;text-align:center;font-family:"Noto Serif JP",serif;}
+  #pwGate{position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,var(--navy) 0%, var(--navy-deep) 100%);display:flex;align-items:center;justify-content:center;padding:24px;}
+  #pwGate .box{max-width:340px;width:100%;text-align:center;}
+  #pwGate h2{font-family:"Noto Serif JP",serif;color:#fff;font-size:20px;margin:0 0 10px;}
+  #pwGate p{color:#D7DCF2;font-size:13px;line-height:1.7;margin:0 0 24px;}
+  #pwGate input{width:100%;text-align:center;letter-spacing:0.6em;font-family:"Noto Sans JP",sans-serif;font-size:28px;font-weight:700;color:var(--navy);border:none;border-radius:12px;padding:14px 10px 14px 16px;background:#fff;}
+  #pwGate input:focus{outline:3px solid var(--gold);}
+  #pwGate button{width:100%;margin-top:14px;padding:13px;background:var(--gold);color:var(--navy);border:none;border-radius:10px;font-family:"Noto Sans JP",sans-serif;font-size:15px;font-weight:700;cursor:pointer;}
+  #pwGate .err{color:#F3B7A6;font-size:12.5px;margin-top:12px;min-height:1.4em;}
+  #pwGate .book{color:#EFE3C4;font-size:12px;margin-top:18px;font-family:"Noto Serif JP",serif;}
   body.locked{overflow:hidden;}
   body.locked > header, body.locked > .wrap{display:none;}
 
-  /* 項目の説明ポップアップ */
-  .has-help{cursor:pointer;}
-  .has-help > .help-t{text-decoration:underline dotted var(--teal);text-underline-offset:3px;}
-  .help-btn{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;margin-left:5px;vertical-align:1px;border-radius:50%;border:1.5px solid var(--teal);background:#fff;color:var(--teal);font-family:"Noto Sans JP",sans-serif;font-size:11px;font-weight:700;line-height:1;padding:0;cursor:pointer;flex:none;}
-  .help-btn:hover,.has-help:hover .help-btn{background:var(--teal);color:#fff;}
-  .help-btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--gold-soft);}
-  .days-row .help-btn{border-color:#fff;background:transparent;color:#fff;}
-  .help-hint{font-size:11.5px;color:var(--teal);margin:10px 0 0;line-height:1.6;}
-  .help-hint .help-btn{pointer-events:none;margin:0 2px;}
-  #helpPop{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(20,27,73,.45);}
-  #helpPop[hidden]{display:none;}
-  #helpPop .hp-box{position:relative;width:100%;max-width:520px;max-height:min(80vh,640px);overflow-y:auto;background:var(--card);border-radius:16px;padding:20px 20px 18px;box-shadow:0 12px 40px rgba(20,27,73,.25);}
-  #helpPop h4{font-family:"Noto Serif JP",serif;font-size:16px;color:var(--navy);margin:0 32px 12px 0;line-height:1.55;}
-  #helpPop .hp-sec{margin:0 0 12px;}
-  #helpPop .hp-lab{display:inline-block;font-size:11px;font-weight:700;color:var(--teal);background:var(--teal-soft);border-radius:999px;padding:2px 10px;margin-bottom:4px;}
-  #helpPop .hp-txt{font-size:13.5px;line-height:1.8;color:var(--ink);margin:0;white-space:pre-line;}
-  #helpPop .hp-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border:none;border-radius:50%;background:#F1EFE8;color:var(--navy);font-size:18px;line-height:1;cursor:pointer;}
-  #helpPop .hp-ok{width:100%;margin-top:4px;padding:11px;border:none;border-radius:10px;background:var(--navy);color:#fff;font-family:"Noto Sans JP",sans-serif;font-size:14px;font-weight:700;cursor:pointer;}
-  @media (max-width:520px){ #helpPop{align-items:flex-end;padding:0;} #helpPop .hp-box{max-width:none;border-radius:16px 16px 0 0;max-height:85vh;} }
+
+  /* v12：押しやすさ・読みやすさ・入力チェック・結果の帯 */
+  input[type="number"], .comma-input, select{min-height:46px;}
+  .check-row input{width:26px !important;height:26px !important;}
+  .field-note{font-size:12.5px !important;}
+  .field-label small{font-size:12px !important;}
+  .nissu-warn{font-size:13px;color:var(--danger);background:#FBEDE8;border-left:3px solid var(--danger);border-radius:8px;padding:9px 12px;margin:2px 0 8px;line-height:1.6;}
+  body{padding-bottom:96px !important;}
+  #stickyBar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--navy-deep);color:#fff;padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;justify-content:center;align-items:center;gap:18px;box-shadow:0 -4px 14px rgba(0,0,0,.18);transition:transform .25s ease;}
+  #stickyBar.off{transform:translateY(120%);}
+  body.locked #stickyBar{display:none;}
+  #stickyBar .sb{display:flex;flex-direction:column;line-height:1.25;}
+  #stickyBar .sb-l{font-size:11.5px;color:#C9CFEC;}
+  #stickyBar .sb-v{font-family:"Noto Serif JP",serif;font-weight:700;font-size:19px;color:var(--gold);white-space:nowrap;}
+  #stickyBar button{margin-left:auto;flex:none;min-height:44px;padding:0 14px;border:none;border-radius:10px;background:var(--gold);color:var(--navy);font-family:"Noto Sans JP",sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
+  @media (min-width:700px){#stickyBar button{margin-left:24px;}}
 </style>
+<style>#pwGate{display:none!important;}</style>
 </head>
-<body class="locked" data-mode="u70">
+<body>
 
-<div id="gate">
+<div id="pwGate">
   <div class="box">
-    <h2>読者限定シミュレーター</h2>
-    <p class="lead">本書の読者限定のツールです。<br>メールアドレスを登録すると、合言葉が届きます。<br>合言葉を入力すると、シミュレーターが開きます。</p>
-
-    <form class="gcard" id="regForm" novalidate>
-      <span class="step">STEP 1</span>
-      <h3>メールアドレスを登録する</h3>
-      <input type="email" class="ginput" id="regEmail" autocomplete="email" inputmode="email" placeholder="例）name@example.com" aria-label="メールアドレス">
-      <ul class="gnote" id="regNote">
-        <li>合言葉は <b>gantookane@gmail.com</b> からお送りします。迷惑メールフォルダに入ってしまうことがあるため、届かない場合はご確認ください。</li>
-        <li>迷惑メール対策をしている方は、このアドレスからのメールを受け取れるよう設定してください。</li>
-        <li>携帯電話会社のメールアドレス（docomo・au・SoftBankなど）は、受信設定によって届かない場合があります。Gmailなどのアドレスがおすすめです。</li>
-        <li>10分ほどたっても届かない場合は、メールアドレスに入力ミスがないかご確認のうえ、もう一度お試しください。</li>
-        <li>ご入力いただいたメールアドレスは、合言葉と、本書・シミュレーターに関するお知らせの送付にのみ使用します。</li>
-      </ul>
-      <div class="hp" aria-hidden="true"><input type="text" id="regWebsite" tabindex="-1" autocomplete="off"></div>
-      <label class="agree"><input type="checkbox" id="regAgree"><span>合言葉と、本書・シミュレーターに関するお知らせをメールで受け取ることに同意します（いつでも配信を停止できます）。</span></label>
-      <button type="submit" class="gbtn" id="regBtn" disabled>合言葉を受け取る</button>
-      <p class="gmsg" id="regMsg" role="status"></p>
-    </form>
-
-    <form class="gcard" id="codeForm" novalidate>
-      <span class="step">STEP 2</span>
-      <h3>届いた合言葉を入力する</h3>
-      <input type="text" class="ginput" id="codeInput" autocomplete="off" placeholder="合言葉" aria-label="合言葉">
-      <button type="submit" class="gbtn" id="codeBtn" disabled>シミュレーターを開く</button>
-      <p class="gmsg" id="codeMsg" role="alert"></p>
-    </form>
-
+    <h2>合言葉を入力してください</h2>
+    <p>本書の読者限定のツールです。<br>本書に記載の合言葉（4桁の数字）を<br>入力してください。</p>
+    <input type="tel" inputmode="numeric" maxlength="4" id="pwInput" autocomplete="off" placeholder="・・・・" aria-label="合言葉（4桁）">
+    <button id="pwSubmit">開く</button>
+    <p class="err" id="pwErr" role="alert"></p>
     <div class="book">『がんとお金の、ほんとうの話』守安俊明</div>
   </div>
 </div>
 
 <header>
   <div class="wrap">
-    <div class="eyebrow">医療保険（がん保険）の、あなたの日額の目安を知ろう</div>
-    <h1>入院時の必要金額<br>シミュレーター<span class="sub only-u70">70歳未満・会社員／自営業者 両対応</span><span class="sub only-o70">70歳以上版（70〜74歳・75歳以上）</span></h1>
-    <p class="only-u70">本書の資料編3章「高額療養費という命綱」と、同じ章の「入力の目安 ― 参考データ」（平均在院日数・差額ベッド代・食事代）に対応しています。①保険の種類と所得区分、②入院諸費用、③その他の費用を入れると、1日あたりの必要額と、入院期間の合計が自動で出ます。</p>
-    <p class="only-o70">本書の資料編3章「高額療養費という命綱」の考え方と、「入力の目安 ― 参考データ」（平均在院日数・差額ベッド代・食事代）に対応しています。70歳以上は、70歳未満とは違う区分（現役並み・一般・住民税非課税）と、窓口負担の割合（1〜3割）で計算します。①年齢と所得区分、②入院諸費用、③その他の費用を入れると、1日あたりの必要額と、入院期間の合計が自動で出ます。</p>
+    <div class="eyebrow">がん保険・医療保険は、1日いくらあれば足りる？</div>
+    <h1>入院時の必要金額<br>シミュレーター<span class="sub">会社員版（会社の健康保険・70歳未満）</span></h1>
+    <p>入院すると、1日あたりいくらお金が出ていくのか。その目安を出すツールです。会社の健康保険（協会けんぽ・健保組合・共済組合）に入っている会社員・公務員と、その扶養家族の人向けです。上から順に、わかるところだけ入れてください。<b style="color:#F1E3C4">わからない欄は、最初から入っている数字（計算の例）のままで大丈夫です。</b>（使い方は本書の資料編の巻頭に、制度のくわしい説明は資料編3章にあります）</p>
     <div class="book-tag">『がんとお金の、ほんとうの話』守安俊明</div>
   </div>
 </header>
 
 <div class="wrap">
 
-  <!-- 年齢の選択 -->
-  <div class="mode-pick">
-    <p class="q">はじめに、年齢を選んでください</p>
-    <p class="q-sub">70歳を境に、高額療養費の区分と窓口負担の割合が変わります。</p>
-    <div class="seg-ctrl" role="group" aria-label="年齢の選択">
-      <button type="button" data-mode="u70" aria-pressed="true">70歳未満<small>会社員／自営業者</small></button>
-      <button type="button" data-mode="o70" aria-pressed="false">70歳以上<small>70〜74歳・75歳以上</small></button>
-    </div>
-    <p class="help-hint"><span class="help-btn" aria-hidden="true">?</span>の付いた項目名をタップすると、何を入れればよいかの説明が出ます。</p>
-  </div>
-
-  <!-- ① 治療関連費用 -->
-  <div class="section-title">① 治療関連費用</div>
-  <p class="section-sub only-u70">高額療養費制度で、1か月の自己負担には上限があります。上限額は会社員でも自営業者でも同じ。違うのは「自分がどの区分（ア〜オ）か」の探し方だけです。年収では決まらない点に注意してください（資料編3章）。</p>
-  <p class="section-sub only-o70">高額療養費制度で、1か月の自己負担には上限があります。70〜74歳は国民健康保険または勤め先の健康保険、75歳以上は後期高齢者医療制度ですが、入院時の上限の考え方は共通です（資料編3章）。</p>
+  <\!-- ① 治療関連費用 -->
+  <div class="section-title">① 病院に払う治療費</div>
+  <p class="section-sub">日本の健康保険には「高額療養費」という仕組みがあります。<b>1か月（毎月1日〜末日）に病院の窓口で払う治療費には上限があり</b>、どんなに高い治療を受けても、上限より多くは払いません。上限の金額は、収入によって5つの段階（ア〜オ）に分かれています。</p>
   <div class="card">
     <div class="card-head">
       <div class="num-badge">1</div>
       <div>
-        <h3>高額療養費の自己負担限度額</h3>
-        <span class="hint only-u70">2026年8月以降の金額（70歳未満）</span>
-        <span class="hint only-o70">2026年8月以降の金額（70歳以上・外来＋入院の世帯ごと）</span>
+        <h3>あなたの「1か月の上限額」を出す</h3>
+        <span class="hint">2026年8月からの金額・70歳未満の方</span>
       </div>
     </div>
-
-    <!-- 70歳未満 -->
-    <div class="only-u70">
-      <div class="field-row">
-        <div class="field-label">保険の種類<small>区分の見方が切り替わります</small></div>
-        <div class="input-shell">
-          <select id="hokenType">
-            <option value="employee" selected>会社員（勤め先の健康保険）</option>
-            <option value="self">自営業者（国民健康保険）</option>
-          </select>
-        </div>
+    <div class="field-row">
+      <div class="field-label">収入の段階（ア〜オ）<small>毎月のお給料の額で選びます</small></div>
+      <div class="input-shell">
+        <select id="shotoku">
+          <option value="a">ア：月給 およそ83万円以上</option>
+          <option value="i">イ：月給 およそ53万〜79万円</option>
+          <option value="u" selected>ウ：月給 およそ28万〜50万円</option>
+          <option value="e">エ：月給 およそ26万円以下</option>
+          <option value="o">オ：住民税がかからない人</option>
+        </select>
       </div>
-      <div class="field-row">
-        <div class="field-label">所得区分<small id="kubunSmall">標準報酬月額でお選びください</small></div>
-        <div class="input-shell">
-          <select id="shotokuU">
-            <option value="a">ア</option>
-            <option value="i">イ</option>
-            <option value="u" selected>ウ</option>
-            <option value="e">エ</option>
-            <option value="o">オ</option>
-          </select>
-        </div>
-      </div>
-      <p id="kubunHelp" class="kubun-help"></p>
-
-      <details class="helper hidden" id="selfHelper">
-        <summary>確定申告の所得から、区分を調べる（自営業者向け）</summary>
-        <div class="field-row">
-          <div class="field-label">ご本人の「所得金額等の合計」<small>確定申告書の該当欄</small></div>
-          <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="shotokuHonnin" value="4,000,000"><span class="unit">円</span></div>
-        </div>
-        <div class="field-row">
-          <div class="field-label">同じ世帯の他の国保加入者の所得<small>合計額（いなければ0円）</small></div>
-          <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="shotokuSetai" value="0"><span class="unit">円</span></div>
-        </div>
-        <div class="field-row">
-          <div class="field-label">その人数<small>ご本人を除く国保加入者</small></div>
-          <div class="input-shell"><input type="number" id="setaiNinzu" min="0" step="1" value="0"><span class="unit">人</span></div>
-        </div>
-        <div class="helper-result" id="helperResult"></div>
-        <p class="field-note">※旧ただし書き所得＝総所得金額等 − 基礎控除43万円（1人ごと）を、世帯の国保加入者で合算した額で区分が決まります。ここでは簡易計算です。住民税非課税（区分オ）は所得だけでは判定できないため対象外です。正確な区分は、お住まいの市区町村の国保窓口でご確認ください。</p>
-      </details>
     </div>
+    <p class="kubun-help">月給は、残業代や通勤手当なども含めた、毎月の給料の額です（正確には「標準報酬月額」という、健康保険料を決めるための金額で決まります）。<b>わからなければ、会社の総務か、入っている健康保険に「高額療養費の区分は何ですか」と聞けば教えてもらえます。</b>「限度額適用認定証」を持っている人は、その「適用区分」の欄に書いてあります。</p>
 
-    <!-- 70歳以上 -->
-    <div class="only-o70">
-      <div class="field-row">
-        <div class="field-label">年齢<small>加入する制度が変わります</small></div>
-        <div class="input-shell">
-          <select id="age">
-            <option value="70" selected>70〜74歳</option>
-            <option value="75">75歳以上（後期高齢者医療制度）</option>
-          </select>
-        </div>
-      </div>
-      <div class="field-row">
-        <div class="field-label">所得区分<small>住民税の課税所得でお選びください</small></div>
-        <div class="input-shell">
-          <select id="shotokuO">
-            <option value="genIII">現役並みⅢ（課税所得690万円〜）</option>
-            <option value="genII">現役並みⅡ（課税所得380万円〜）</option>
-            <option value="genI">現役並みⅠ（課税所得145万円〜）</option>
-            <option value="ippan" selected>一般（課税所得145万円未満等）</option>
-            <option value="hikazei2">住民税非課税Ⅱ</option>
-            <option value="hikazei1">住民税非課税Ⅰ（年金80万円以下）</option>
-          </select>
-        </div>
-      </div>
-      <p class="kubun-help">区分は“年収”ではなく、<b>住民税の課税所得</b>などで決まります。お手元の「資格確認書」や「限度額適用認定証」、保険料の通知書に記載があるほか、加入先（市区町村・健康保険・後期高齢者医療広域連合）で確認できます。</p>
-      <div class="field-row">
-        <div class="field-label">窓口負担の割合<small>区分と年齢から自動で入ります</small></div>
-        <div class="input-shell">
-          <select id="futan">
-            <option value="0.1">1割</option>
-            <option value="0.2" selected>2割</option>
-            <option value="0.3">3割</option>
-          </select>
-        </div>
-      </div>
-      <p class="field-note">※現役並みは3割、70〜74歳の一般・住民税非課税は2割、75歳以上の一般・住民税非課税は1割が基本です。75歳以上で一定以上の所得がある方（2割）は、選び直してください。</p>
-    </div>
 
     <label class="check-row">
       <input type="checkbox" id="tasuu">
-      <span>多数回該当（直近12か月で、すでに3回以上上限に達している）<small id="tasuuSmall">4回目からは上限が下がります（資料編3章「多数回該当 ― 長引くほど、軽くなる」）</small></span>
+      <span>この1年間に、上限額まで払った月が、もう3回以上ある<small>4回目からは上限額がさらに下がります（「多数回該当」といいます）。治療が長く続いている人向け。初めての入院なら、チェックしなくてOK。</small></span>
     </label>
 
     <div class="field-row">
-      <div class="field-label">1か月の医療費総額（概算）<small>保険適用の、10割相当の総額</small></div>
+      <div class="field-label">その月の総医療費（もとの値段）<small>総医療費は、病院でかかった医療費の「もとの値段」。10割負担だった場合の金額を記入</small></div>
       <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="iryouhi" value="1,000,000"><span class="unit">円</span></div>
     </div>
+    <p class="field-note">※「その月」は、入院する月の1日から末日まで（カレンダーの1か月）のことです。入院が月をまたぐときは、月ごとに分けて考えます。<br>※わからなければ、100万円のまま試してください（計算の例です）。入院したことがある人は、病院の領収書の「保険」欄の点数の合計に10をかけると、この金額になります。</p>
     <div class="field-row">
-      <div class="field-label">入院日数<small>今回の入院で見込む日数</small></div>
-      <div class="input-shell"><input type="number" id="nissu" min="1" step="1" value="15"><span class="unit">日</span></div>
+      <div class="field-label">入院する日数<small>その月のうち、病院に泊まる日数</small></div>
+      <div class="input-shell"><input type="number" id="nissu" min="1" max="31" step="1" value="15" inputmode="numeric"><span class="unit">日</span></div>
     </div>
-    <p class="field-note only-u70">※初期値は、がん（悪性新生物）の平均在院日数 約14〜15日（厚生労働省「令和5年患者調査」、資料編3章「参考データ①」）から15日としています。</p>
-    <p class="field-note only-o70">※初期値は、がん（悪性新生物）の平均在院日数 約14〜15日から15日としています。なお、病気全体では65歳以上 約35日、75歳以上 約39日と、年齢とともに長くなる傾向があります（厚生労働省「令和5年患者調査」、資料編3章「参考データ①」）。</p>
+    <p class="field-note">※わからなければ15日のまま。がんで入院した人の平均は約14〜15日です（厚生労働省「令和5年患者調査」）。</p>
+    <p id="nissuWarn" class="nissu-warn hidden" role="alert"></p>
     <div class="subtotal-line">
-      <span class="lab">自己負担限度額（月額）</span>
+      <span class="lab">この月、窓口で払う治療費（上限額）</span>
       <span class="val" id="genndoOut">―円</span>
     </div>
     <div class="subtotal-line">
-      <span class="lab">① 1日あたりの治療関連費用</span>
+      <span class="lab">① 治療費を1日あたりにすると</span>
       <span class="val" id="out1">―円</span>
     </div>
   </div>
 
-  <!-- ② 入院諸費用 -->
-  <div class="section-title">② 入院諸費用</div>
-  <p class="section-sub">差額ベッド代・食事代は、健康保険の範囲外で、高額療養費の対象にもなりません（資料編3章「参考データ②③」）。</p>
+  <\!-- ② 入院諸費用 -->
+  <div class="section-title">② 部屋代と食事代</div>
+  <p class="section-sub">個室などの「差額ベッド代」と入院中の食事代は、①の上限の仕組みの外です。<b>上限とは別に、泊まった日数分かかります。</b></p>
   <div class="card">
     <div class="card-head">
       <div class="num-badge">2</div>
       <div>
-        <h3>差額ベッド代・食事代</h3>
+        <h3>部屋代と食事代</h3>
         <span class="hint">1日あたりの金額</span>
       </div>
     </div>
     <div class="field-row">
-      <div class="field-label">部屋のタイプ<small>資料編3章「参考データ②」から選択</small></div>
+      <div class="field-label">希望する部屋<small>選ぶと、全国平均の金額が入ります</small></div>
       <div class="input-shell">
         <select id="heyaType">
-          <option value="6862" selected>全体の平均（6,862円）</option>
-          <option value="8625">1人部屋（8,625円）</option>
-          <option value="3149">2人部屋（3,149円）</option>
-          <option value="2778">3人部屋（2,778円）</option>
-          <option value="2780">4人部屋（2,780円）</option>
-          <option value="0">差額なしの大部屋（0円）</option>
-          <option value="free">自由入力（金額を直接入力）</option>
+          <option value="6862" selected>まだわからない（平均 6,862円）</option>
+          <option value="8625">個室（平均 8,625円）</option>
+          <option value="3149">2人部屋（平均 3,149円）</option>
+          <option value="2778">3人部屋（平均 2,778円）</option>
+          <option value="2780">4人部屋（平均 2,780円）</option>
+          <option value="0">追加料金のない大部屋（0円）</option>
+          <option value="free">金額を自分で入れる</option>
         </select>
       </div>
     </div>
     <div class="field-row">
-      <div class="field-label">差額ベッド代<small>選ぶと自動入力。直接編集もできます</small></div>
+      <div class="field-label">部屋代（差額ベッド代）<small>病院の案内にある「室料差額」の1日の金額</small></div>
       <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="beddai" value="6,862"><span class="unit">円</span></div>
     </div>
-    <p class="field-note">※治療上の必要や、病院の都合（空きがない等）で個室になった場合は、差額ベッド代を払う義務はありません。患者が「同意書」にサインした場合にのみ発生します（厚生労働省「主な選定療養に係る報告状況」令和6年8月1日時点）。</p>
+    <p class="field-note">※部屋代がかかるのは、自分から希望して「同意書」にサインした場合だけです。治療のために個室が必要なときや、空きがなくて個室になったときは、払わなくてよいことになっています。（平均額は厚生労働省の調べ、令和6年8月1日時点）</p>
     <div class="field-row">
-      <div class="field-label">食事代（自己負担）<small>1食550円 × 3食</small></div>
+      <div class="field-label">食事代（1日）<small>1食550円 × 3食</small></div>
       <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="shokuji" value="1,650"><span class="unit">円</span></div>
     </div>
-    <p class="field-note only-u70">※2026年6月改定の標準負担額（一般所得区分）。住民税非課税の方は、申請により1食270円などに軽くなります。</p>
-    <p class="field-note only-o70">※2026年6月改定の標準負担額（一般所得区分）。住民税非課税の方は、申請により軽くなります。</p>
+    <p class="field-note">※2026年6月からの金額です。住民税がかからない人は、申請すると1食270円などに下がります。</p>
     <div class="subtotal-line">
-      <span class="lab">② 1日あたりの入院諸費用</span>
+      <span class="lab">② 部屋代と食事代（1日あたり）</span>
       <span class="val" id="out2">―円</span>
     </div>
   </div>
 
-  <!-- ③ その他の費用 -->
-  <div class="section-title">③ その他の費用</div>
-  <p class="section-sub">寝間着・タオル・通信・テレビカードなどの日用品、家族の交通費など、日割りで考える実費です（資料編3章「参考データ③」）。<span id="selfWarn" class="warn hidden">自営業者は、入院中も事業の固定費や生活費が止まりません。傷病手当金も原則ないため、この欄が特に大切です（資料編4章「収入が減ったときの制度」）。</span></p>
+  <\!-- ③ その他の費用 -->
+  <div class="section-title">③ そのほかの出費</div>
+  <p class="section-sub">パジャマやタオルのレンタル、テレビカード、スマホ代、家族のお見舞いの交通費など。細かい出費を、1日あたりにならした金額です。</p>
   <div class="card">
     <div class="card-head">
       <div class="num-badge">3</div>
       <div>
-        <h3>その他の実費</h3>
-        <span class="hint">1日あたりに割り戻した金額</span>
+        <h3>そのほかの出費</h3>
+        <span class="hint">1日あたりの金額</span>
       </div>
     </div>
     <div class="field-row">
-      <div class="field-label">日用品・雑費・家族の交通費など<small>入院準備の費用も日割りで</small></div>
+      <div class="field-label">日用品・家族の交通費など<small>入院の準備で買った物も含めて、1日あたりに</small></div>
       <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="sonota" value="1,000"><span class="unit">円</span></div>
     </div>
-    <p class="field-note">※初期値は、日用品・雑費の目安「1日1,000〜2,000円程度」の下限です。</p>
-    <div id="selfKoteiRow" class="hidden">
-      <div class="field-row">
-        <div class="field-label">事業の固定費・生活費（休業中）<small>家賃・リース料・生活費などを日割りで</small></div>
-        <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="jigyoKotei" value="3,000"><span class="unit">円</span></div>
-      </div>
-      <p class="field-note">※1か月の固定費・生活費の見込みを30で割った金額を入れてください。</p>
-    </div>
-    <p id="employeeNote" class="field-note">※会社員の方は、働けない間の収入を傷病手当金（給与のおおむね3分の2、最長通算1年6か月）が支えます（資料編4章）。</p>
+    <p class="field-note">※わからなければ1,000円のまま。1日1,000〜2,000円くらいが目安です。</p>
+    <p class="field-note">※会社の健康保険に入っている人は、病気で働けない間、給料のおよそ3分の2が健康保険から出ます（傷病手当金。通算で最長1年6か月）。</p>
     <div class="subtotal-line">
-      <span class="lab">③ 1日あたりのその他の費用</span>
+      <span class="lab">③ そのほかの出費（1日あたり）</span>
       <span class="val" id="out3">―円</span>
     </div>
   </div>
 
-  <!-- 内訳 -->
+  <\!-- 内訳 -->
   <div class="stackwrap">
-    <h3>①＋②＋③ の内訳（1日あたりの比率）</h3>
+    <h3>1日あたりの内訳</h3>
     <div class="bar-track" role="img" aria-label="1日あたりの費用の内訳">
       <div class="seg seg-1" id="seg1" style="width:33%"></div>
       <div class="seg seg-2" id="seg2" style="width:33%"></div>
       <div class="seg seg-3" id="seg3" style="width:34%"></div>
     </div>
     <div class="legend">
-      <div class="legend-item"><span class="dot" style="background:var(--navy)"></span>① 治療関連費用</div>
-      <div class="legend-item"><span class="dot" style="background:var(--teal)"></span>② 入院諸費用</div>
-      <div class="legend-item"><span class="dot" style="background:var(--gold)"></span>③ その他の費用</div>
+      <div class="legend-item"><span class="dot" style="background:var(--navy)"></span>① 治療費</div>
+      <div class="legend-item"><span class="dot" style="background:var(--teal)"></span>② 部屋代と食事代</div>
+      <div class="legend-item"><span class="dot" style="background:var(--gold)"></span>③ そのほかの出費</div>
     </div>
   </div>
 
-  <!-- ④ 先進医療 -->
-  <div class="section-title">④ 先進医療の費用（一括・任意）</div>
-  <p class="section-sub">先進医療の技術料は全額自己負担で、高額療養費の対象外です。日割りにせず、技術料の総額と先進医療特約の給付額を入れ、その差額を一括で加えます。粒子線治療の技術料の目安は約270万〜320万円（資料編3章「参考データ③」・8章）。特約の有無は、資料編4章で確認できます。</p>
+  <\!-- ④ 先進医療 -->
+  <div class="section-title">④ 先進医療を受ける場合（受けない人は0円のまま）</div>
+  <p class="section-sub">先進医療は、まだ健康保険が使えない新しい治療です。<b>治療代は全額自分で払い、①の上限の仕組みも使えません。</b>がん保険などに「先進医療特約」が付いていれば、そこからお金が出ます。この欄は日数で割らず、最後に1回分としてまとめて足します。例：粒子線治療を先進医療で受けると、約270万〜320万円。</p>
   <div class="card">
     <div class="card-head">
       <div class="num-badge">4</div>
       <div>
-        <h3>先進医療の技術料と、特約でカバーされる額</h3>
-        <span class="hint">日割りしない、一度きりの金額</span>
+        <h3>先進医療の治療代と、保険から出るお金</h3>
+        <span class="hint">1回きりの金額</span>
       </div>
     </div>
     <div class="field-row">
-      <div class="field-label">先進医療の技術料（総額）<small>検討している場合のみ</small></div>
+      <div class="field-label">先進医療の治療代（技術料）<small>受ける予定がなければ0円</small></div>
       <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="sentan" value="0"><span class="unit">円</span></div>
     </div>
     <div class="field-row">
-      <div class="field-label">先進医療特約の給付額<small>なければ0円</small></div>
+      <div class="field-label">「先進医療特約」から出るお金<small>保険証券で確かめます。特約がなければ0円</small></div>
       <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="tokuyaku" value="0"><span class="unit">円</span></div>
     </div>
     <div class="subtotal-line">
-      <span class="lab">④ 先進医療の自己負担（一括）</span>
+      <span class="lab">④ 先進医療で自分が払うお金</span>
       <span class="val" id="out4">―円</span>
     </div>
   </div>
 
-  <!-- 結果 -->
+  <\!-- 結果 -->
   <div class="result" aria-live="polite">
-    <p class="result-label">1日あたりの入院時必要金額（①＋②＋③）</p>
+    <p class="result-label">入院1日あたりに出ていくお金（①＋②＋③）</p>
     <p class="result-amount"><span class="big" id="dayTotal">―</span>円 / 日</p>
-    <p class="result-caption">入院時の自己負担を補う、医療保険（がん保険）の日額の目安です。</p>
+    <p class="result-caption">がん保険・医療保険の「入院1日あたりの給付金」をいくらにするか考えるときの目安です。</p>
     <div class="days-row">
-      <label for="stayDays">この日額に入院日数（①と同じ日数）をかけて、総額を確認します。必要なら日数を変えられます</label>
+      <label for="stayDays">入院する日数（①で入れた日数が入ります。ここで変えることもできます）</label>
       <input type="number" id="stayDays" min="1" step="1" value="15">
     </div>
     <div class="subtotal-line hidden" id="sentanAddRow">
-      <span class="lab">＋ ④ 先進医療の自己負担（一括）</span>
+      <span class="lab">＋ ④ 先進医療で自分が払うお金</span>
       <span class="val" id="sentanAddOut">―円</span>
     </div>
     <div class="total-stay">
-      <span class="lab">入院期間中の想定合計額</span>
+      <span class="lab">入院中にかかるお金の合計（目安）</span>
       <span class="val" id="stayTotal">―円</span>
     </div>
   </div>
 
-  <!-- 今日、ひとつだけ -->
+  <\!-- 今日、ひとつだけ -->
   <div class="today">
     <h3>今日、ひとつだけ</h3>
     <p class="lead">数字が分かったら、どれか一つだけ、今日やってみてください。</p>
     <ul>
-      <li>保険証券を一枚、開いてみる。<small class="only-u70">先進医療特約は付いているか。65歳を境に、給付が変わらないか。（資料編4章）</small><small class="only-o70">先進医療特約は付いているか。年齢で給付が変わっていないか。（資料編4章）</small></li>
-      <li>マイナ保険証か、限度額適用認定証を、手元にそろえておく。<small>窓口での支払いを、最初から上限までに抑えられます。（資料編3章）</small></li>
+      <li>保険証券を一枚、開いてみる。<small>先進医療特約は付いているか。65歳を境に、給付が変わらないか。（資料編4章）</small></li>
+      <li>マイナ保険証がなければ、限度額適用認定証の申請書を用意しておく。<small>認定証には有効期限があるので、入院や通院が決まったら申請します。マイナ保険証か認定証があれば、窓口での支払いが、最初から上限額までで済みます。（資料編3章）</small></li>
       <li>大切な人と、「もしものとき」の話を、一度だけしておく。<small>（資料編12章）</small></li>
     </ul>
   </div>
 
-  <div class="note only-u70">
-    <b>ご利用にあたって</b>――本シミュレーターは、『がんとお金の、ほんとうの話』資料編3章の考え方と数字をもとに、読者ご自身で目安を試算していただくためのものです（いまは70歳未満向けの計算です。70歳以上の方は、ページ上部の「70歳以上」を選んでください）。<br>
-    ・①〜③は「1か月以内の入院」を想定した目安です。治療が数か月にわたる場合、①〜③は月ごとに繰り返し発生します。④は治療期間全体で一度の金額です。<br>
-    ・同じ月でも「外来」と「入院」は別々に上限が計算されます。70歳未満は、それぞれ2万1千円以上なら申請で合算でき、上限を超えた分が払い戻されます（世帯合算）。<br>
-    ・上限額は2026年8月からの第1段階を反映しています。新設の「年間上限」は反映していません。2027年8月には所得区分の細分化（5区分→13区分）が予定されています。<br>
-    ・実際の金額は、医療機関・治療内容・加入している健康保険によって異なります。正確な金額は、医療機関の窓口、加入先の健康保険、がん相談支援センター（誰でも無料）にご確認ください。<br>
-    ・本ツールは、特定の商品・医療機関を推奨・勧誘するものではありません。
-  </div>
-  <div class="note only-o70">
-    <b>ご利用にあたって</b>――本シミュレーターは、『がんとお金の、ほんとうの話』資料編3章の考え方と数字をもとに、読者ご自身で目安を試算していただくためのものです（いまは70歳以上向けの計算です。70歳未満の方は、ページ上部の「70歳未満」を選んでください）。<br>
-    ・上限額は2026年8月以降の「外来＋入院（世帯ごと）」の金額です（現役並みⅢ 27万300円＋1％、Ⅱ 17万9,100円＋1％、Ⅰ 8万5,800円＋1％、一般 6万1,500円、住民税非課税Ⅱ 2万5,700円、Ⅰ 1万5,700円）。出典：厚生労働省・全国健康保険協会（協会けんぽ）「令和8年8月からの高額療養費制度の見直し」。<br>
-    ・外来だけにかかる別枠の上限（外来特例）、新設の「年間上限」、多数回該当の住民税非課税区分の扱いは反映していません。2027年8月には、さらに見直しが予定されています。<br>
-    ・①〜③は「1か月以内の入院」を想定した目安です。治療が数か月にわたる場合、①〜③は月ごとに繰り返し発生します。④は治療期間全体で一度の金額です。<br>
-    ・実際の金額は、医療機関・治療内容・加入している制度によって異なります。正確な金額は、医療機関の窓口、加入先、がん相談支援センター（誰でも無料）にご確認ください。<br>
-    ・本ツールは、特定の商品・医療機関を推奨・勧誘するものではありません。
+  <div class="note">
+    <b>ご利用にあたって</b>――このツールは、『がんとお金の、ほんとうの話』資料編の巻頭と3章の考え方と数字をもとに、読者が自分で目安を出すためのものです。会社の健康保険に入っている、70歳未満の人向けです（国民健康保険の人は「自営業・フリーランス版」、70歳以上の人は「70歳以上版」を使ってください）。<br>
+    ・①〜③は「1か月以内の入院」を前提にした目安です。治療が何か月も続くときは、①〜③は月ごとにかかります。④は治療全体で1回です。<br>
+    ・同じ月でも、通院と入院は別々に上限が計算されます。70歳未満は、同じ月にそれぞれ21,000円以上払っていれば、申請して合わせることができ、上限を超えた分が戻ってきます（世帯合算）。<br>
+    ・上限額は2026年8月からの金額です。新しくできた「1年間の上限」は入れていません。2027年8月からは、段階（ア〜オ）がさらに細かく分かれる予定です。<br>
+    ・実際の金額は、病院・治療の内容・入っている健康保険によって違います。くわしくは、病院の窓口、入っている健康保険、がん相談支援センター（だれでも無料）に聞いてください。<br>
+    ・特定の保険商品や病院をすすめるものではありません。
   </div>
 
   <footer>
@@ -551,7 +562,7 @@
 
   // 共通の入力イベント（入院日数の連動、部屋タイプ）
   function wireCommon(calc){
-    $("nissu").addEventListener("input", () => { $("stayDays").value = $("nissu").value; calc(); });
+    $("nissu").addEventListener("input", () => { const n = parseInt($("nissu").value, 10); if (n >= 1) $("stayDays").value = Math.min(31, n); calc(); });
     $("stayDays").addEventListener("input", calc);
     $("heyaType").addEventListener("change", () => {
       if ($("heyaType").value === "free") { $("beddai").focus(); $("beddai").select(); return; }
@@ -561,11 +572,10 @@
     $("beddai").addEventListener("input", () => { $("heyaType").value = "free"; });
   }
 
-  // ── 70歳未満 ──────────────────────────────
   // 資料編3章「2026年8月からの改定」表（70歳未満）
   // 上限額：ア 27.0万円+1%、イ 17.9万円+1%、ウ 8.6万円+1%、エ 6万1,500円、オ 3万6,900円
   // 多数回該当（据え置き）：ア 14万100円、イ 9万3,000円、ウ・エ 4万4,400円、オ 2万4,600円
-  const TABLE_U70 = {
+  const SHOTOKU_TABLE = {
     a: { base: 270300, threshold: 901000, rate: 0.01, tasuu: 140100 },
     i: { base: 179100, threshold: 597000, rate: 0.01, tasuu:  93000 },
     u: { base:  85800, threshold: 286000, rate: 0.01, tasuu:  44400 },
@@ -573,26 +583,1067 @@
     o: { base:  36900, threshold: null,   rate: 0,    tasuu:  24600 },
   };
 
-  // 資料編3章「自分の所得区分を見つける」対応表
-  const KUBUN_LABELS = {
-    employee: {
-      small: "標準報酬月額でお選びください",
-      opts: { a:"ア（標準報酬月額 83万円以上）", i:"イ（53万〜79万円）", u:"ウ（28万〜50万円）", e:"エ（26万円以下）", o:"オ（住民税非課税）" },
-      help: "区分は“年収”ではなく<b>標準報酬月額</b>で決まります。給与明細の健康保険料から等級表で逆算するか、勤め先・健康保険組合にご確認ください。おおよそは毎月の給与（手当込み）に近い額です。"
-    },
-    self: {
-      small: "旧ただし書き所得でお選びください",
-      opts: { a:"ア（旧ただし書き所得 901万円超）", i:"イ（600万〜901万円）", u:"ウ（210万〜600万円）", e:"エ（210万円以下）", o:"オ（住民税非課税）" },
-      help: "区分は前年の<b>旧ただし書き所得</b>（＝総所得金額等 − 基礎控除43万円）で決まります。国保税の通知書の「算定基礎額」か、確定申告書から計算します。例：事業所得500万円 → 500万 − 43万 ＝ <b>457万円</b> → 区分ウ。下の「確定申告の所得から、区分を調べる」も使えます。"
-    }
-  };
-  const KUBUN_NAME = { a:"ア", i:"イ", u:"ウ", e:"エ", o:"オ" };
+  function calc(){
+    const t = SHOTOKU_TABLE[$("shotoku").value];
+    const iryouhi = parseComma($("iryouhi").value);
+    const cap = $("tasuu").checked ? t.tasuu : capOf(t, iryouhi);
+    const genndo = Math.min(iryouhi * 0.3, cap);
+    $("genndoOut").textContent = yen(genndo) + " / 月";
 
-  // ── 70歳以上 ──────────────────────────────
+    const nissuRaw = parseFloat($("nissu").value);
+    let nissu = nissuRaw;
+    const nw = $("nissuWarn");
+    if (!(nissuRaw >= 1)) { nw.textContent = "入院する日数を、1日以上で入れてください。"; nw.classList.remove("hidden"); nissu = NaN; }
+    else if (nissuRaw > 31) { nw.textContent = "その月に入院する日数は、多くても31日です。入院が月をまたぐときは、月ごとに分けて計算してください（高額療養費の上限は、月ごとにかかります）。ここでは31日として計算しています。"; nw.classList.remove("hidden"); nissu = 31; }
+    else { nw.classList.add("hidden"); }
+    if (isNaN(nissu)) { ["out1","dayTotal","stayTotal"].forEach(id => { $(id).textContent = "―"; }); return; }
+    const v1 = genndo / nissu;
+    const v2 = parseComma($("beddai").value) + parseComma($("shokuji").value);
+    const v3 = parseComma($("sonota").value);
+    const sentanZangaku = Math.max(0, parseComma($("sentan").value) - parseComma($("tokuyaku").value));
+    render(v1, v2, v3, sentanZangaku);
+  }
+
+  $("shotoku").addEventListener("change", calc);
+  $("tasuu").addEventListener("change", calc);
+  ["iryouhi","beddai","shokuji","sonota","sentan","tokuyaku"].forEach(id => setupCommaInput(id, calc));
+  wireCommon(calc);
+
+  calc();
+
+<\/script>
+<script>
+(function(){
+  // 合言葉ゲート（本書 資料編の巻頭「① 使い方 ― 3つのステップ」で届く4桁の合言葉）
+  // ※ページ内に書かれた簡易的な入口です。アクセス管理（セキュリティ）ではありません。
+  const CORRECT = "1192";
+  const STORAGE_KEY = "gankane_sim_unlocked";
+  const body = document.body;
+  const input = document.getElementById("pwInput");
+  const err = document.getElementById("pwErr");
+  const gate = document.getElementById("pwGate");
+  function unlock(){
+    body.classList.remove("locked");
+    gate.style.display = "none";
+    try { localStorage.setItem(STORAGE_KEY, "1"); } catch(e){}
+  }
+  try { if (localStorage.getItem(STORAGE_KEY) === "1") unlock(); } catch(e){}
+  function tryUnlock(){
+    if (input.value === CORRECT) { unlock(); }
+    else { err.textContent = "合言葉が違うようです。もう一度お試しください。"; input.value = ""; input.focus(); }
+  }
+  document.getElementById("pwSubmit").addEventListener("click", tryUnlock);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") tryUnlock(); });
+  input.addEventListener("input", () => { err.textContent = ""; });
+})();
+
+<\/script>
+<div id="stickyBar" class="off">
+  <div class="sb"><span class="sb-l">入院1日あたり</span><span class="sb-v" id="sbDay">―</span></div>
+  <div class="sb"><span class="sb-l">入院中の合計</span><span class="sb-v" id="sbTotal">―</span></div>
+  <button type="button" id="sbGo">結果を見る</button>
+</div>
+<script>
+(function(){
+  const bar=document.getElementById("stickyBar"), res=document.querySelector(".result");
+  const d=document.getElementById("dayTotal"), t=document.getElementById("stayTotal");
+  function sync(){
+    const dv=d.textContent.trim(), tv=t.textContent.trim();
+    document.getElementById("sbDay").textContent = (dv==="―"||dv==="") ? "―" : dv.replace(/^¥/,"")+"円";
+    document.getElementById("sbTotal").textContent = (tv==="―"||tv==="") ? "―" : tv.replace(/^¥/,"").replace(/円$/,"")+"円";
+  }
+  new MutationObserver(sync).observe(d,{childList:true,characterData:true,subtree:true});
+  new MutationObserver(sync).observe(t,{childList:true,characterData:true,subtree:true});
+  sync();
+  let resVisible=false, scrolled=false;
+  let typing=false;
+  function upd(){ bar.classList.toggle("off", resVisible || !scrolled || typing); }
+  document.addEventListener("focusin",e=>{ if(e.target.matches("input,select")){ typing=true; upd(); } });
+  document.addEventListener("focusout",()=>{ typing=false; upd(); });
+  new IntersectionObserver(es=>{ resVisible=es[0].isIntersecting; upd(); },{threshold:0.15}).observe(res);
+  window.addEventListener("scroll",()=>{ scrolled = window.scrollY > 200; upd(); },{passive:true});
+  document.getElementById("sbGo").addEventListener("click",()=>res.scrollIntoView({behavior:"smooth",block:"center"}));
+})();
+<\/script>
+</body>
+</html>
+</script>
+<script type="text/plain" id="src-self"><!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>入院時の必要金額シミュレーター（自営業・フリーランス版・70歳未満）―『がんとお金の、ほんとうの話』</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#1E2761; --navy-deep:#141B49; --ivory:#F7F5EF; --card:#FFFFFF;
+    --gold:#C89B3C; --gold-soft:#F1E3C4; --teal:#2D6A6A; --teal-soft:#E4EFEE;
+    --ink:#26314D; --ink-soft:#6B7280; --line:#E3E1D8; --danger:#B5533C;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--ivory);color:var(--ink);font-family:"Noto Sans JP",sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:64px;}
+  .wrap{max-width:640px;margin:0 auto;padding:0 20px;}
+  header{background:linear-gradient(160deg,var(--navy) 0%, var(--navy-deep) 100%);color:#fff;padding:36px 0 30px;position:relative;overflow:hidden;}
+  header::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle, rgba(200,155,60,0.35), transparent 70%);}
+  .eyebrow{font-size:12.5px;letter-spacing:.08em;color:var(--gold);font-weight:700;margin-bottom:10px;}
+  h1{font-family:"Noto Serif JP",serif;font-size:26px;line-height:1.5;font-weight:700;margin:0 0 10px;}
+  h1 .sub{font-size:16px;color:#D4972F;display:block;margin-top:4px;}
+  header p{font-size:13.5px;line-height:1.75;color:#D7DCF2;margin:0;max-width:46ch;}
+  .book-tag{display:inline-block;margin-top:16px;font-size:12px;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:5px 12px;color:#EFE3C4;}
+  .section-title{font-family:"Noto Serif JP",serif;font-size:16.5px;font-weight:700;color:var(--navy);margin:34px 0 4px;}
+  .section-sub{font-size:12.5px;color:var(--ink-soft);margin:0 0 14px;line-height:1.7;}
+  .section-sub .warn{color:var(--danger);font-weight:700;}
+  .kubun-help{font-size:12px;color:var(--ink-soft);line-height:1.7;margin:12px 2px 2px;padding:11px 13px;background:var(--teal-soft);border-left:3px solid var(--teal);border-radius:6px;}
+  .kubun-help b{color:var(--ink);font-weight:700;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px;margin-bottom:14px;box-shadow:0 1px 2px rgba(20,27,73,0.03);}
+  .card-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .num-badge{flex:none;width:30px;height:30px;border-radius:9px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-family:"Noto Serif JP",serif;font-weight:700;font-size:15px;}
+  .card-head h3{margin:0;font-size:14.5px;font-weight:700;color:var(--navy);}
+  .card-head span.hint{display:block;font-size:11.5px;color:var(--ink-soft);font-weight:400;margin-top:2px;}
+  .field-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;padding:8px 0;}
+  .field-row + .field-row{border-top:1px dashed var(--line);}
+  .field-label{flex:1 1 130px;min-width:130px;font-size:13px;color:var(--ink);line-height:1.5;}
+  .field-label small{display:block;color:var(--ink-soft);font-size:11px;margin-top:1px;}
+  .field-note{font-size:11px;color:var(--ink-soft);margin:-2px 0 6px;line-height:1.65;}
+  .input-shell{display:flex;align-items:center;gap:4px;flex:0 1 auto;justify-content:flex-end;}
+  input[type="number"], .comma-input{
+    width:130px;text-align:right;direction:ltr;font-family:"Noto Sans JP",sans-serif;font-size:16px;font-weight:700;color:var(--navy);
+    border:1.5px solid var(--line);border-radius:9px;padding:9px 10px;background:#FBFAF7;-moz-appearance:textfield;-webkit-appearance:none;appearance:none;}
+  input[type="number"]{width:104px;}
+  input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  select{width:250px;max-width:100%;text-align:right;font-family:"Noto Sans JP",sans-serif;font-size:14px;font-weight:700;color:var(--navy);
+    border:1.5px solid var(--line);border-radius:9px;padding:9px 10px;background:#FBFAF7;appearance:none;-webkit-appearance:none;}
+  input:focus, select:focus{outline:none;border-color:var(--gold);background:#fff;box-shadow:0 0 0 3px var(--gold-soft);}
+  .unit{font-size:12.5px;color:var(--ink-soft);width:32px;}
+  .check-row{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px dashed var(--line);font-size:13px;line-height:1.55;cursor:pointer;}
+  .check-row input{width:20px;height:20px;margin:1px 0 0;accent-color:var(--navy);flex:none;}
+  .check-row small{display:block;color:var(--ink-soft);font-size:11px;}
+  .subtotal-line{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);}
+  .subtotal-line .lab{flex:1 1 auto;min-width:150px;font-size:12px;color:var(--ink-soft);}
+  .subtotal-line .val{flex:0 0 auto;white-space:nowrap;font-family:"Noto Serif JP",serif;font-size:18px;font-weight:700;color:var(--navy);}
+  details.helper{margin:10px 0 4px;border:1px solid var(--line);border-radius:10px;background:#FBFAF7;padding:0 12px;}
+  details.helper summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--teal);padding:10px 0;list-style:none;}
+  details.helper summary::before{content:"＋ ";}
+  details.helper[open] summary::before{content:"－ ";}
+  details.helper .field-row + .field-row{border-top:1px dashed var(--line);}
+  .helper-result{font-size:12.5px;color:var(--ink);padding:8px 0 12px;line-height:1.7;}
+  .helper-result b{color:var(--navy);}
+  .hidden{display:none !important;}
+  .stackwrap{margin:30px 0 8px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 20px 22px;}
+  .stackwrap h3{font-family:"Noto Serif JP",serif;font-size:15px;color:var(--navy);margin:0 0 14px;}
+  .bar-track{width:100%;height:26px;border-radius:8px;overflow:hidden;display:flex;background:#EFEDE5;box-shadow:inset 0 1px 2px rgba(0,0,0,.05);}
+  .seg{height:100%;transition:width .35s ease;}
+  .seg-1{background:var(--navy);} .seg-2{background:var(--teal);} .seg-3{background:var(--gold);}
+  .legend{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-soft);}
+  .dot{width:10px;height:10px;border-radius:3px;flex:none;}
+  .result{margin-top:22px;background:linear-gradient(160deg,var(--navy), var(--navy-deep));color:#fff;border-radius:18px;padding:26px 22px 24px;position:relative;overflow:hidden;}
+  .result::before{content:"";position:absolute;left:-40px;bottom:-50px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle, rgba(200,155,60,0.28), transparent 70%);}
+  .result > *{position:relative;}
+  .result-label{font-size:12.5px;color:#C9CFEC;margin:0 0 6px;}
+  .result-amount{font-family:"Noto Serif JP",serif;font-weight:700;font-size:15px;color:#fff;margin:0;display:flex;align-items:baseline;gap:6px;}
+  .result-amount .big{font-size:38px;}
+  .result-caption{font-size:12.5px;color:var(--gold);line-height:1.6;margin:6px 0 0;}
+  .days-row{margin-top:20px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;}
+  .days-row label{font-size:12.5px;color:#D7DCF2;flex:1;line-height:1.5;}
+  .days-row input{width:64px;text-align:center;font-size:16px;font-weight:700;border-radius:8px;border:none;padding:8px 6px;color:var(--navy);}
+  .result .subtotal-line{border-top-color:rgba(255,255,255,.18);}
+  .result .subtotal-line .lab{color:#C9CFEC;}
+  .result .subtotal-line .val{color:#fff;}
+  .total-stay{margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.18);display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 10px;}
+  .total-stay .lab{flex:1 1 auto;min-width:130px;font-size:12.5px;color:#C9CFEC;}
+  .total-stay .val{flex:0 0 auto;white-space:nowrap;font-family:"Noto Serif JP",serif;font-size:24px;font-weight:700;color:var(--gold);}
+  .today{margin-top:22px;background:var(--card);border:1px solid var(--gold);border-radius:14px;padding:18px 18px 12px;}
+  .today h3{font-family:"Noto Serif JP",serif;font-size:15.5px;color:var(--navy);margin:0 0 4px;}
+  .today .lead{font-size:12.5px;color:var(--ink-soft);margin:0 0 10px;line-height:1.6;}
+  .today ul{list-style:none;margin:0;padding:0;}
+  .today li{font-size:13px;line-height:1.65;padding:8px 0 8px 26px;position:relative;border-top:1px dashed var(--line);}
+  .today li::before{content:"☐";position:absolute;left:2px;top:7px;color:#7A1F1F;font-size:15px;}
+  .today li small{display:block;color:var(--ink-soft);font-size:11.5px;}
+  .note{margin-top:22px;font-size:12px;line-height:1.9;color:var(--ink-soft);background:var(--teal-soft);border-radius:12px;padding:14px 16px;}
+  .note b{color:var(--teal);}
+  footer{margin-top:36px;text-align:center;font-size:11.5px;color:var(--ink-soft);line-height:2;}
+  footer .fbook{font-family:"Noto Serif JP",serif;color:var(--navy);font-weight:700;font-size:14px;}
+  footer .fsub{font-family:"Noto Serif JP",serif;color:var(--navy);font-size:12px;}
+  footer .fline{font-family:"Noto Serif JP",serif;color:var(--ink);font-size:12.5px;margin-top:6px;}
+  @media (prefers-reduced-motion: reduce){.seg{transition:none;}}
+  #pwGate{position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,var(--navy) 0%, var(--navy-deep) 100%);display:flex;align-items:center;justify-content:center;padding:24px;}
+  #pwGate .box{max-width:340px;width:100%;text-align:center;}
+  #pwGate h2{font-family:"Noto Serif JP",serif;color:#fff;font-size:20px;margin:0 0 10px;}
+  #pwGate p{color:#D7DCF2;font-size:13px;line-height:1.7;margin:0 0 24px;}
+  #pwGate input{width:100%;text-align:center;letter-spacing:0.6em;font-family:"Noto Sans JP",sans-serif;font-size:28px;font-weight:700;color:var(--navy);border:none;border-radius:12px;padding:14px 10px 14px 16px;background:#fff;}
+  #pwGate input:focus{outline:3px solid var(--gold);}
+  #pwGate button{width:100%;margin-top:14px;padding:13px;background:var(--gold);color:var(--navy);border:none;border-radius:10px;font-family:"Noto Sans JP",sans-serif;font-size:15px;font-weight:700;cursor:pointer;}
+  #pwGate .err{color:#F3B7A6;font-size:12.5px;margin-top:12px;min-height:1.4em;}
+  #pwGate .book{color:#EFE3C4;font-size:12px;margin-top:18px;font-family:"Noto Serif JP",serif;}
+  body.locked{overflow:hidden;}
+  body.locked > header, body.locked > .wrap{display:none;}
+
+
+  /* v12：押しやすさ・読みやすさ・入力チェック・結果の帯 */
+  input[type="number"], .comma-input, select{min-height:46px;}
+  .check-row input{width:26px !important;height:26px !important;}
+  .field-note{font-size:12.5px !important;}
+  .field-label small{font-size:12px !important;}
+  .nissu-warn{font-size:13px;color:var(--danger);background:#FBEDE8;border-left:3px solid var(--danger);border-radius:8px;padding:9px 12px;margin:2px 0 8px;line-height:1.6;}
+  body{padding-bottom:96px !important;}
+  #stickyBar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--navy-deep);color:#fff;padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;justify-content:center;align-items:center;gap:18px;box-shadow:0 -4px 14px rgba(0,0,0,.18);transition:transform .25s ease;}
+  #stickyBar.off{transform:translateY(120%);}
+  body.locked #stickyBar{display:none;}
+  #stickyBar .sb{display:flex;flex-direction:column;line-height:1.25;}
+  #stickyBar .sb-l{font-size:11.5px;color:#C9CFEC;}
+  #stickyBar .sb-v{font-family:"Noto Serif JP",serif;font-weight:700;font-size:19px;color:var(--gold);white-space:nowrap;}
+  #stickyBar button{margin-left:auto;flex:none;min-height:44px;padding:0 14px;border:none;border-radius:10px;background:var(--gold);color:var(--navy);font-family:"Noto Sans JP",sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
+  @media (min-width:700px){#stickyBar button{margin-left:24px;}}
+</style>
+<style>#pwGate{display:none!important;}</style>
+</head>
+<body>
+
+<div id="pwGate">
+  <div class="box">
+    <h2>合言葉を入力してください</h2>
+    <p>本書の読者限定のツールです。<br>本書に記載の合言葉（4桁の数字）を<br>入力してください。</p>
+    <input type="tel" inputmode="numeric" maxlength="4" id="pwInput" autocomplete="off" placeholder="・・・・" aria-label="合言葉（4桁）">
+    <button id="pwSubmit">開く</button>
+    <p class="err" id="pwErr" role="alert"></p>
+    <div class="book">『がんとお金の、ほんとうの話』守安俊明</div>
+  </div>
+</div>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">がん保険・医療保険は、1日いくらあれば足りる？</div>
+    <h1>入院時の必要金額<br>シミュレーター<span class="sub">自営業・フリーランス版（国民健康保険・70歳未満）</span></h1>
+    <p>入院すると、1日あたりいくらお金が出ていくのか。その目安を出すツールです。国民健康保険に入っている自営業・フリーランスの人向けで、確定申告書の所得から、あなたの上限額を出します。上から順に、わかるところだけ入れてください。<b style="color:#F1E3C4">わからない欄は、最初から入っている数字（計算の例）のままで大丈夫です。</b>（使い方は本書の資料編の巻頭に、制度のくわしい説明は資料編3章・4章にあります）</p>
+    <div class="book-tag">『がんとお金の、ほんとうの話』守安俊明</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <\!-- ① 治療関連費用 -->
+  <div class="section-title">① 病院に払う治療費</div>
+  <p class="section-sub">日本の健康保険には「高額療養費」という仕組みがあります。<b>1か月（毎月1日〜末日）に病院の窓口で払う治療費には上限があり</b>、どんなに高い治療を受けても、上限より多くは払いません。上限の金額は、収入によって5つの段階（ア〜オ）に分かれていて、会社員と同じ金額です。国民健康保険では、前の年の所得から1人43万円ずつ引いた額を、同じ国民健康保険の家族の分まで合計して段階が決まります。</p>
+  <div class="card">
+    <div class="card-head">
+      <div class="num-badge">1</div>
+      <div>
+        <h3>あなたの「1か月の上限額」を出す</h3>
+        <span class="hint">2026年8月からの金額・70歳未満の方</span>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">あなたの所得<small>確定申告書の「所得金額等」の「合計」欄</small></div>
+      <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="shotokuHonnin" value="4,000,000"><span class="unit">円</span></div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">同じ国民健康保険に入っている家族の所得<small>家族の分を合計（いなければ0円）</small></div>
+      <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="shotokuSetai" value="0"><span class="unit">円</span></div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">その家族の人数<small>あなたは数えません</small></div>
+      <div class="input-shell"><input type="number" id="setaiNinzu" min="0" step="1" value="0"><span class="unit">人</span></div>
+    </div>
+    <p class="field-note">※1人43万円ずつ引いて合計する、簡単な計算です（こうして出した額を「旧ただし書き所得」といいます）。国民健康保険税（料）の通知書にある「算定基礎額」がわかれば、それが目安になります。例：所得500万円 → 500万 − 43万 ＝ 457万円 → 段階ウ。</p>
+    <div class="subtotal-line">
+      <span class="lab">段階を決める所得（家族と合計、1人43万円を引いた額）</span>
+      <span class="val" id="kyuOut">―円</span>
+    </div>
+    <div class="subtotal-line">
+      <span class="lab">あなたの収入の段階</span>
+      <span class="val" id="kubunOut">―</span>
+    </div>
+    <label class="check-row">
+      <input type="checkbox" id="hikazei">
+      <span>家族みんな、住民税がかからない（段階オ）<small>所得だけでは決められないので、当てはまる人はチェックしてください。正確な段階は、市区町村の国民健康保険の窓口で「高額療養費の区分は何ですか」と聞けば教えてもらえます</small></span>
+    </label>
+
+    <label class="check-row">
+      <input type="checkbox" id="tasuu">
+      <span>この1年間に、上限額まで払った月が、もう3回以上ある<small>4回目からは上限額がさらに下がります（「多数回該当」といいます）。治療が長く続いている人向け。初めての入院なら、チェックしなくてOK。</small></span>
+    </label>
+
+    <div class="field-row">
+      <div class="field-label">その月の総医療費（もとの値段）<small>総医療費は、病院でかかった医療費の「もとの値段」。10割負担だった場合の金額を記入</small></div>
+      <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="iryouhi" value="1,000,000"><span class="unit">円</span></div>
+    </div>
+    <p class="field-note">※「その月」は、入院する月の1日から末日まで（カレンダーの1か月）のことです。入院が月をまたぐときは、月ごとに分けて考えます。<br>※わからなければ、100万円のまま試してください（計算の例です）。入院したことがある人は、病院の領収書の「保険」欄の点数の合計に10をかけると、この金額になります。</p>
+    <div class="field-row">
+      <div class="field-label">入院する日数<small>その月のうち、病院に泊まる日数</small></div>
+      <div class="input-shell"><input type="number" id="nissu" min="1" max="31" step="1" value="15" inputmode="numeric"><span class="unit">日</span></div>
+    </div>
+    <p class="field-note">※わからなければ15日のまま。がんで入院した人の平均は約14〜15日です（厚生労働省「令和5年患者調査」）。</p>
+    <p id="nissuWarn" class="nissu-warn hidden" role="alert"></p>
+    <div class="subtotal-line">
+      <span class="lab">この月、窓口で払う治療費（上限額）</span>
+      <span class="val" id="genndoOut">―円</span>
+    </div>
+    <div class="subtotal-line">
+      <span class="lab">① 治療費を1日あたりにすると</span>
+      <span class="val" id="out1">―円</span>
+    </div>
+  </div>
+
+  <\!-- ② 入院諸費用 -->
+  <div class="section-title">② 部屋代と食事代</div>
+  <p class="section-sub">個室などの「差額ベッド代」と入院中の食事代は、①の上限の仕組みの外です。<b>上限とは別に、泊まった日数分かかります。</b></p>
+  <div class="card">
+    <div class="card-head">
+      <div class="num-badge">2</div>
+      <div>
+        <h3>部屋代と食事代</h3>
+        <span class="hint">1日あたりの金額</span>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">希望する部屋<small>選ぶと、全国平均の金額が入ります</small></div>
+      <div class="input-shell">
+        <select id="heyaType">
+          <option value="6862" selected>まだわからない（平均 6,862円）</option>
+          <option value="8625">個室（平均 8,625円）</option>
+          <option value="3149">2人部屋（平均 3,149円）</option>
+          <option value="2778">3人部屋（平均 2,778円）</option>
+          <option value="2780">4人部屋（平均 2,780円）</option>
+          <option value="0">追加料金のない大部屋（0円）</option>
+          <option value="free">金額を自分で入れる</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">部屋代（差額ベッド代）<small>病院の案内にある「室料差額」の1日の金額</small></div>
+      <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="beddai" value="6,862"><span class="unit">円</span></div>
+    </div>
+    <p class="field-note">※部屋代がかかるのは、自分から希望して「同意書」にサインした場合だけです。治療のために個室が必要なときや、空きがなくて個室になったときは、払わなくてよいことになっています。（平均額は厚生労働省の調べ、令和6年8月1日時点）</p>
+    <div class="field-row">
+      <div class="field-label">食事代（1日）<small>1食550円 × 3食</small></div>
+      <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="shokuji" value="1,650"><span class="unit">円</span></div>
+    </div>
+    <p class="field-note">※2026年6月からの金額です。住民税がかからない人は、申請すると1食270円などに下がります。</p>
+    <div class="subtotal-line">
+      <span class="lab">② 部屋代と食事代（1日あたり）</span>
+      <span class="val" id="out2">―円</span>
+    </div>
+  </div>
+
+  <\!-- ③ その他の費用 -->
+  <div class="section-title">③ そのほかの出費</div>
+  <p class="section-sub">パジャマやタオルのレンタル、テレビカード、スマホ代、家族のお見舞いの交通費など。細かい出費を、1日あたりにならした金額です。<span id="selfWarn" class="warn">自営業の人は、入院中も店の家賃やリース代、生活費がかかり続けます。会社員と違って、休んだ間の給料の代わりになるお金（傷病手当金）も、原則ありません。この欄を忘れずに。</span></p>
+  <div class="card">
+    <div class="card-head">
+      <div class="num-badge">3</div>
+      <div>
+        <h3>そのほかの出費</h3>
+        <span class="hint">1日あたりの金額</span>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">日用品・家族の交通費など<small>入院の準備で買った物も含めて、1日あたりに</small></div>
+      <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="sonota" value="1,000"><span class="unit">円</span></div>
+    </div>
+    <p class="field-note">※わからなければ1,000円のまま。1日1,000〜2,000円くらいが目安です。</p>
+    <div id="selfKoteiRow">
+      <div class="field-row">
+        <div class="field-label">休んでいる間もかかるお金<small>店の家賃・リース代・生活費など、1か月分 ÷ 30</small></div>
+        <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="jigyoKotei" value="3,000"><span class="unit">円</span></div>
+      </div>
+      <p class="field-note">※例：1か月9万円なら、3,000円です。治療が長引いて、障害の状態が続くときは、障害年金が支えになることがあります（資料編4章）。</p>
+    </div>
+    <div class="subtotal-line">
+      <span class="lab">③ そのほかの出費（1日あたり）</span>
+      <span class="val" id="out3">―円</span>
+    </div>
+  </div>
+
+  <\!-- 内訳 -->
+  <div class="stackwrap">
+    <h3>1日あたりの内訳</h3>
+    <div class="bar-track" role="img" aria-label="1日あたりの費用の内訳">
+      <div class="seg seg-1" id="seg1" style="width:33%"></div>
+      <div class="seg seg-2" id="seg2" style="width:33%"></div>
+      <div class="seg seg-3" id="seg3" style="width:34%"></div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="dot" style="background:var(--navy)"></span>① 治療費</div>
+      <div class="legend-item"><span class="dot" style="background:var(--teal)"></span>② 部屋代と食事代</div>
+      <div class="legend-item"><span class="dot" style="background:var(--gold)"></span>③ そのほかの出費</div>
+    </div>
+  </div>
+
+  <\!-- ④ 先進医療 -->
+  <div class="section-title">④ 先進医療を受ける場合（受けない人は0円のまま）</div>
+  <p class="section-sub">先進医療は、まだ健康保険が使えない新しい治療です。<b>治療代は全額自分で払い、①の上限の仕組みも使えません。</b>がん保険などに「先進医療特約」が付いていれば、そこからお金が出ます。この欄は日数で割らず、最後に1回分としてまとめて足します。例：粒子線治療を先進医療で受けると、約270万〜320万円。</p>
+  <div class="card">
+    <div class="card-head">
+      <div class="num-badge">4</div>
+      <div>
+        <h3>先進医療の治療代と、保険から出るお金</h3>
+        <span class="hint">1回きりの金額</span>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">先進医療の治療代（技術料）<small>受ける予定がなければ0円</small></div>
+      <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="sentan" value="0"><span class="unit">円</span></div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">「先進医療特約」から出るお金<small>保険証券で確かめます。特約がなければ0円</small></div>
+      <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="tokuyaku" value="0"><span class="unit">円</span></div>
+    </div>
+    <div class="subtotal-line">
+      <span class="lab">④ 先進医療で自分が払うお金</span>
+      <span class="val" id="out4">―円</span>
+    </div>
+  </div>
+
+  <\!-- 結果 -->
+  <div class="result" aria-live="polite">
+    <p class="result-label">入院1日あたりに出ていくお金（①＋②＋③）</p>
+    <p class="result-amount"><span class="big" id="dayTotal">―</span>円 / 日</p>
+    <p class="result-caption">がん保険・医療保険の「入院1日あたりの給付金」をいくらにするか考えるときの目安です。</p>
+    <div class="days-row">
+      <label for="stayDays">入院する日数（①で入れた日数が入ります。ここで変えることもできます）</label>
+      <input type="number" id="stayDays" min="1" step="1" value="15">
+    </div>
+    <div class="subtotal-line hidden" id="sentanAddRow">
+      <span class="lab">＋ ④ 先進医療で自分が払うお金</span>
+      <span class="val" id="sentanAddOut">―円</span>
+    </div>
+    <div class="total-stay">
+      <span class="lab">入院中にかかるお金の合計（目安）</span>
+      <span class="val" id="stayTotal">―円</span>
+    </div>
+  </div>
+
+  <\!-- 今日、ひとつだけ -->
+  <div class="today">
+    <h3>今日、ひとつだけ</h3>
+    <p class="lead">数字が分かったら、どれか一つだけ、今日やってみてください。</p>
+    <ul>
+      <li>保険証券を一枚、開いてみる。<small>先進医療特約は付いているか。65歳を境に、給付が変わらないか。（資料編4章）</small></li>
+      <li>マイナ保険証がなければ、限度額適用認定証の申請書を用意しておく。<small>認定証には有効期限があるので、入院や通院が決まったら申請します。マイナ保険証か認定証があれば、窓口での支払いが、最初から上限額までで済みます。（資料編3章）</small></li>
+      <li>大切な人と、「もしものとき」の話を、一度だけしておく。<small>（資料編12章）</small></li>
+    </ul>
+  </div>
+
+  <div class="note">
+    <b>ご利用にあたって</b>――このツールは、『がんとお金の、ほんとうの話』資料編の巻頭と3章の考え方と数字をもとに、読者が自分で目安を出すためのものです。国民健康保険に入っている、70歳未満の自営業・フリーランスの人向けです（会社の健康保険の人は「会社員版」、70歳以上の人は「70歳以上版」を使ってください）。段階（ア〜オ）は確定申告書の所得からの簡単な計算なので、家族の人数や所得の種類によっては、実際と違うことがあります。<br>
+    ・①〜③は「1か月以内の入院」を前提にした目安です。治療が何か月も続くときは、①〜③は月ごとにかかります。④は治療全体で1回です。<br>
+    ・同じ月でも、通院と入院は別々に上限が計算されます。70歳未満は、同じ月にそれぞれ21,000円以上払っていれば、申請して合わせることができ、上限を超えた分が戻ってきます（世帯合算）。<br>
+    ・上限額は2026年8月からの金額です。新しくできた「1年間の上限」は入れていません。2027年8月からは、段階（ア〜オ）がさらに細かく分かれる予定です。<br>
+    ・国民健康保険には、会社の健康保険のような傷病手当金（休んだ間の給料の代わり）が原則ありません。休んでいる間の生活費は、数か月分の貯え、就業不能保険・所得補償保険なども含めて、元気なうちに考えておきましょう（資料編4章）。<br>
+    ・実際の金額は、病院・治療の内容・入っている健康保険によって違います。くわしくは、病院の窓口、市区町村の国民健康保険の窓口、がん相談支援センター（だれでも無料）に聞いてください。<br>
+    ・特定の保険商品や病院をすすめるものではありません。
+  </div>
+
+  <footer>
+    <div class="fbook">『がんとお金の、ほんとうの話』</div>
+    <div class="fsub">― FPが患者になって分かったこと ―</div>
+    守安俊明 著
+    <div class="fline">制度は、知って、使って、はじめて味方になる。</div>
+  </footer>
+
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const yen = n => "¥" + Math.round(n).toLocaleString("ja-JP");
+  const parseComma = v => parseFloat((v || "").toString().replace(/[^0-9.]/g, "")) || 0;
+
+  // 金額欄：入力しながらカンマ区切り。カーソル位置も保つ
+  function setupCommaInput(id, onChange){
+    const el = $(id);
+    el.addEventListener("input", () => {
+      const raw = el.value.replace(/[^0-9]/g, "");
+      const caretFromEnd = el.value.length - (el.selectionStart ?? el.value.length);
+      el.value = raw === "" ? "" : Number(raw).toLocaleString("ja-JP");
+      const pos = Math.max(0, el.value.length - caretFromEnd);
+      try { el.setSelectionRange(pos, pos); } catch(e){}
+      onChange();
+    });
+  }
+
+  // 自己負担は「窓口負担（3割など）」と「高額療養費の上限額」の、小さいほう
+  function capOf(t, iryouhi){
+    if (t.threshold === null) return t.base;
+    return t.base + Math.max(0, iryouhi - t.threshold) * t.rate;
+  }
+
+  // ①②③の日額と④の一括額から、結果欄・内訳バーを描く
+  function render(v1, v2, v3, sentanZangaku){
+    $("out1").textContent = yen(v1) + " / 日";
+    $("out2").textContent = yen(v2) + " / 日";
+    $("out3").textContent = yen(v3) + " / 日";
+    $("out4").textContent = yen(sentanZangaku);
+    const total = v1 + v2 + v3;
+    $("dayTotal").textContent = Math.round(total).toLocaleString("ja-JP");
+    let p1 = 33, p2 = 33, p3 = 34;
+    if (total > 0){ p1 = v1/total*100; p2 = v2/total*100; p3 = 100 - p1 - p2; }
+    $("seg1").style.width = p1 + "%"; $("seg2").style.width = p2 + "%"; $("seg3").style.width = p3 + "%";
+    const stayDays = parseFloat($("stayDays").value) || 0;
+    $("sentanAddRow").classList.toggle("hidden", !(sentanZangaku > 0));
+    $("sentanAddOut").textContent = yen(sentanZangaku);
+    $("stayTotal").textContent = yen(total * stayDays + sentanZangaku);
+  }
+
+  // 共通の入力イベント（入院日数の連動、部屋タイプ）
+  function wireCommon(calc){
+    $("nissu").addEventListener("input", () => { const n = parseInt($("nissu").value, 10); if (n >= 1) $("stayDays").value = Math.min(31, n); calc(); });
+    $("stayDays").addEventListener("input", calc);
+    $("heyaType").addEventListener("change", () => {
+      if ($("heyaType").value === "free") { $("beddai").focus(); $("beddai").select(); return; }
+      $("beddai").value = (parseInt($("heyaType").value, 10) || 0).toLocaleString("ja-JP");
+      calc();
+    });
+    $("beddai").addEventListener("input", () => { $("heyaType").value = "free"; });
+  }
+
+  // 資料編3章「2026年8月からの改定」表（70歳未満）。多数回該当は据え置き
+  const SHOTOKU_TABLE = {
+    a: { base: 270300, threshold: 901000, rate: 0.01, tasuu: 140100 },
+    i: { base: 179100, threshold: 597000, rate: 0.01, tasuu:  93000 },
+    u: { base:  85800, threshold: 286000, rate: 0.01, tasuu:  44400 },
+    e: { base:  61500, threshold: null,   rate: 0,    tasuu:  44400 },
+    o: { base:  36900, threshold: null,   rate: 0,    tasuu:  24600 },
+  };
+  // 資料編3章の対応表（自営業者：旧ただし書き所得）
+  const KUBUN_LABEL = { a:"ア（901万円超）", i:"イ（600万〜901万円）", u:"ウ（210万〜600万円）", e:"エ（210万円以下）", o:"オ（住民税がかからない）" };
+
+  function calc(){
+    const honnin = parseComma($("shotokuHonnin").value);
+    const setai = parseComma($("shotokuSetai").value);
+    const ninzu = Math.max(0, parseInt($("setaiNinzu").value, 10) || 0);
+    const kyu = Math.max(0, honnin - 430000) + Math.max(0, setai - 430000 * ninzu);
+    let k = "e";
+    if (kyu > 9010000) k = "a"; else if (kyu > 6000000) k = "i"; else if (kyu > 2100000) k = "u";
+    if ($("hikazei").checked) k = "o";
+    $("kyuOut").textContent = yen(kyu);
+    $("kubunOut").textContent = KUBUN_LABEL[k];
+
+    const t = SHOTOKU_TABLE[k];
+    const iryouhi = parseComma($("iryouhi").value);
+    const cap = $("tasuu").checked ? t.tasuu : capOf(t, iryouhi);
+    const genndo = Math.min(iryouhi * 0.3, cap);
+    $("genndoOut").textContent = yen(genndo) + " / 月";
+
+    const nissuRaw = parseFloat($("nissu").value);
+    let nissu = nissuRaw;
+    const nw = $("nissuWarn");
+    if (!(nissuRaw >= 1)) { nw.textContent = "入院する日数を、1日以上で入れてください。"; nw.classList.remove("hidden"); nissu = NaN; }
+    else if (nissuRaw > 31) { nw.textContent = "その月に入院する日数は、多くても31日です。入院が月をまたぐときは、月ごとに分けて計算してください（高額療養費の上限は、月ごとにかかります）。ここでは31日として計算しています。"; nw.classList.remove("hidden"); nissu = 31; }
+    else { nw.classList.add("hidden"); }
+    if (isNaN(nissu)) { ["out1","dayTotal","stayTotal"].forEach(id => { $(id).textContent = "―"; }); return; }
+    const v1 = genndo / nissu;
+    const v2 = parseComma($("beddai").value) + parseComma($("shokuji").value);
+    const v3 = parseComma($("sonota").value) + parseComma($("jigyoKotei").value);
+    const sentanZangaku = Math.max(0, parseComma($("sentan").value) - parseComma($("tokuyaku").value));
+    render(v1, v2, v3, sentanZangaku);
+  }
+  $("hikazei").addEventListener("change", calc);
+  $("tasuu").addEventListener("change", calc);
+  $("setaiNinzu").addEventListener("input", calc);
+  ["shotokuHonnin","shotokuSetai","iryouhi","beddai","shokuji","sonota","jigyoKotei","sentan","tokuyaku"].forEach(id => setupCommaInput(id, calc));
+  wireCommon(calc);
+  calc();
+
+<\/script>
+<script>
+(function(){
+  // 合言葉ゲート（本書 資料編の巻頭「① 使い方 ― 3つのステップ」で届く4桁の合言葉）
+  // ※ページ内に書かれた簡易的な入口です。アクセス管理（セキュリティ）ではありません。
+  const CORRECT = "1192";
+  const STORAGE_KEY = "gankane_sim_unlocked";
+  const body = document.body;
+  const input = document.getElementById("pwInput");
+  const err = document.getElementById("pwErr");
+  const gate = document.getElementById("pwGate");
+  function unlock(){
+    body.classList.remove("locked");
+    gate.style.display = "none";
+    try { localStorage.setItem(STORAGE_KEY, "1"); } catch(e){}
+  }
+  try { if (localStorage.getItem(STORAGE_KEY) === "1") unlock(); } catch(e){}
+  function tryUnlock(){
+    if (input.value === CORRECT) { unlock(); }
+    else { err.textContent = "合言葉が違うようです。もう一度お試しください。"; input.value = ""; input.focus(); }
+  }
+  document.getElementById("pwSubmit").addEventListener("click", tryUnlock);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") tryUnlock(); });
+  input.addEventListener("input", () => { err.textContent = ""; });
+})();
+
+<\/script>
+<div id="stickyBar" class="off">
+  <div class="sb"><span class="sb-l">入院1日あたり</span><span class="sb-v" id="sbDay">―</span></div>
+  <div class="sb"><span class="sb-l">入院中の合計</span><span class="sb-v" id="sbTotal">―</span></div>
+  <button type="button" id="sbGo">結果を見る</button>
+</div>
+<script>
+(function(){
+  const bar=document.getElementById("stickyBar"), res=document.querySelector(".result");
+  const d=document.getElementById("dayTotal"), t=document.getElementById("stayTotal");
+  function sync(){
+    const dv=d.textContent.trim(), tv=t.textContent.trim();
+    document.getElementById("sbDay").textContent = (dv==="―"||dv==="") ? "―" : dv.replace(/^¥/,"")+"円";
+    document.getElementById("sbTotal").textContent = (tv==="―"||tv==="") ? "―" : tv.replace(/^¥/,"").replace(/円$/,"")+"円";
+  }
+  new MutationObserver(sync).observe(d,{childList:true,characterData:true,subtree:true});
+  new MutationObserver(sync).observe(t,{childList:true,characterData:true,subtree:true});
+  sync();
+  let resVisible=false, scrolled=false;
+  let typing=false;
+  function upd(){ bar.classList.toggle("off", resVisible || !scrolled || typing); }
+  document.addEventListener("focusin",e=>{ if(e.target.matches("input,select")){ typing=true; upd(); } });
+  document.addEventListener("focusout",()=>{ typing=false; upd(); });
+  new IntersectionObserver(es=>{ resVisible=es[0].isIntersecting; upd(); },{threshold:0.15}).observe(res);
+  window.addEventListener("scroll",()=>{ scrolled = window.scrollY > 200; upd(); },{passive:true});
+  document.getElementById("sbGo").addEventListener("click",()=>res.scrollIntoView({behavior:"smooth",block:"center"}));
+})();
+<\/script>
+</body>
+</html>
+</script>
+<script type="text/plain" id="src-senior"><!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>入院時の必要金額シミュレーター（70歳以上版）―『がんとお金の、ほんとうの話』</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#1E2761; --navy-deep:#141B49; --ivory:#F7F5EF; --card:#FFFFFF;
+    --gold:#C89B3C; --gold-soft:#F1E3C4; --teal:#2D6A6A; --teal-soft:#E4EFEE;
+    --ink:#26314D; --ink-soft:#6B7280; --line:#E3E1D8; --danger:#B5533C;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--ivory);color:var(--ink);font-family:"Noto Sans JP",sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:64px;}
+  .wrap{max-width:640px;margin:0 auto;padding:0 20px;}
+  header{background:linear-gradient(160deg,var(--navy) 0%, var(--navy-deep) 100%);color:#fff;padding:36px 0 30px;position:relative;overflow:hidden;}
+  header::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle, rgba(200,155,60,0.35), transparent 70%);}
+  .eyebrow{font-size:12.5px;letter-spacing:.08em;color:var(--gold);font-weight:700;margin-bottom:10px;}
+  h1{font-family:"Noto Serif JP",serif;font-size:26px;line-height:1.5;font-weight:700;margin:0 0 10px;}
+  h1 .sub{font-size:16px;color:#D4972F;display:block;margin-top:4px;}
+  header p{font-size:13.5px;line-height:1.75;color:#D7DCF2;margin:0;max-width:46ch;}
+  .book-tag{display:inline-block;margin-top:16px;font-size:12px;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:5px 12px;color:#EFE3C4;}
+  .section-title{font-family:"Noto Serif JP",serif;font-size:16.5px;font-weight:700;color:var(--navy);margin:34px 0 4px;}
+  .section-sub{font-size:12.5px;color:var(--ink-soft);margin:0 0 14px;line-height:1.7;}
+  .section-sub .warn{color:var(--danger);font-weight:700;}
+  .kubun-help{font-size:12px;color:var(--ink-soft);line-height:1.7;margin:12px 2px 2px;padding:11px 13px;background:var(--teal-soft);border-left:3px solid var(--teal);border-radius:6px;}
+  .kubun-help b{color:var(--ink);font-weight:700;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px;margin-bottom:14px;box-shadow:0 1px 2px rgba(20,27,73,0.03);}
+  .card-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .num-badge{flex:none;width:30px;height:30px;border-radius:9px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-family:"Noto Serif JP",serif;font-weight:700;font-size:15px;}
+  .card-head h3{margin:0;font-size:14.5px;font-weight:700;color:var(--navy);}
+  .card-head span.hint{display:block;font-size:11.5px;color:var(--ink-soft);font-weight:400;margin-top:2px;}
+  .field-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;padding:8px 0;}
+  .field-row + .field-row{border-top:1px dashed var(--line);}
+  .field-label{flex:1 1 130px;min-width:130px;font-size:13px;color:var(--ink);line-height:1.5;}
+  .field-label small{display:block;color:var(--ink-soft);font-size:11px;margin-top:1px;}
+  .field-note{font-size:11px;color:var(--ink-soft);margin:-2px 0 6px;line-height:1.65;}
+  .input-shell{display:flex;align-items:center;gap:4px;flex:0 1 auto;justify-content:flex-end;}
+  input[type="number"], .comma-input{
+    width:130px;text-align:right;direction:ltr;font-family:"Noto Sans JP",sans-serif;font-size:16px;font-weight:700;color:var(--navy);
+    border:1.5px solid var(--line);border-radius:9px;padding:9px 10px;background:#FBFAF7;-moz-appearance:textfield;-webkit-appearance:none;appearance:none;}
+  input[type="number"]{width:104px;}
+  input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  select{width:250px;max-width:100%;text-align:right;font-family:"Noto Sans JP",sans-serif;font-size:14px;font-weight:700;color:var(--navy);
+    border:1.5px solid var(--line);border-radius:9px;padding:9px 10px;background:#FBFAF7;appearance:none;-webkit-appearance:none;}
+  input:focus, select:focus{outline:none;border-color:var(--gold);background:#fff;box-shadow:0 0 0 3px var(--gold-soft);}
+  .unit{font-size:12.5px;color:var(--ink-soft);width:32px;}
+  .check-row{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px dashed var(--line);font-size:13px;line-height:1.55;cursor:pointer;}
+  .check-row input{width:20px;height:20px;margin:1px 0 0;accent-color:var(--navy);flex:none;}
+  .check-row small{display:block;color:var(--ink-soft);font-size:11px;}
+  .subtotal-line{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);}
+  .subtotal-line .lab{flex:1 1 auto;min-width:150px;font-size:12px;color:var(--ink-soft);}
+  .subtotal-line .val{flex:0 0 auto;white-space:nowrap;font-family:"Noto Serif JP",serif;font-size:18px;font-weight:700;color:var(--navy);}
+  details.helper{margin:10px 0 4px;border:1px solid var(--line);border-radius:10px;background:#FBFAF7;padding:0 12px;}
+  details.helper summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--teal);padding:10px 0;list-style:none;}
+  details.helper summary::before{content:"＋ ";}
+  details.helper[open] summary::before{content:"－ ";}
+  details.helper .field-row + .field-row{border-top:1px dashed var(--line);}
+  .helper-result{font-size:12.5px;color:var(--ink);padding:8px 0 12px;line-height:1.7;}
+  .helper-result b{color:var(--navy);}
+  .hidden{display:none !important;}
+  .stackwrap{margin:30px 0 8px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 20px 22px;}
+  .stackwrap h3{font-family:"Noto Serif JP",serif;font-size:15px;color:var(--navy);margin:0 0 14px;}
+  .bar-track{width:100%;height:26px;border-radius:8px;overflow:hidden;display:flex;background:#EFEDE5;box-shadow:inset 0 1px 2px rgba(0,0,0,.05);}
+  .seg{height:100%;transition:width .35s ease;}
+  .seg-1{background:var(--navy);} .seg-2{background:var(--teal);} .seg-3{background:var(--gold);}
+  .legend{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-soft);}
+  .dot{width:10px;height:10px;border-radius:3px;flex:none;}
+  .result{margin-top:22px;background:linear-gradient(160deg,var(--navy), var(--navy-deep));color:#fff;border-radius:18px;padding:26px 22px 24px;position:relative;overflow:hidden;}
+  .result::before{content:"";position:absolute;left:-40px;bottom:-50px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle, rgba(200,155,60,0.28), transparent 70%);}
+  .result > *{position:relative;}
+  .result-label{font-size:12.5px;color:#C9CFEC;margin:0 0 6px;}
+  .result-amount{font-family:"Noto Serif JP",serif;font-weight:700;font-size:15px;color:#fff;margin:0;display:flex;align-items:baseline;gap:6px;}
+  .result-amount .big{font-size:38px;}
+  .result-caption{font-size:12.5px;color:var(--gold);line-height:1.6;margin:6px 0 0;}
+  .days-row{margin-top:20px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;}
+  .days-row label{font-size:12.5px;color:#D7DCF2;flex:1;line-height:1.5;}
+  .days-row input{width:64px;text-align:center;font-size:16px;font-weight:700;border-radius:8px;border:none;padding:8px 6px;color:var(--navy);}
+  .result .subtotal-line{border-top-color:rgba(255,255,255,.18);}
+  .result .subtotal-line .lab{color:#C9CFEC;}
+  .result .subtotal-line .val{color:#fff;}
+  .total-stay{margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.18);display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 10px;}
+  .total-stay .lab{flex:1 1 auto;min-width:130px;font-size:12.5px;color:#C9CFEC;}
+  .total-stay .val{flex:0 0 auto;white-space:nowrap;font-family:"Noto Serif JP",serif;font-size:24px;font-weight:700;color:var(--gold);}
+  .today{margin-top:22px;background:var(--card);border:1px solid var(--gold);border-radius:14px;padding:18px 18px 12px;}
+  .today h3{font-family:"Noto Serif JP",serif;font-size:15.5px;color:var(--navy);margin:0 0 4px;}
+  .today .lead{font-size:12.5px;color:var(--ink-soft);margin:0 0 10px;line-height:1.6;}
+  .today ul{list-style:none;margin:0;padding:0;}
+  .today li{font-size:13px;line-height:1.65;padding:8px 0 8px 26px;position:relative;border-top:1px dashed var(--line);}
+  .today li::before{content:"☐";position:absolute;left:2px;top:7px;color:#7A1F1F;font-size:15px;}
+  .today li small{display:block;color:var(--ink-soft);font-size:11.5px;}
+  .note{margin-top:22px;font-size:12px;line-height:1.9;color:var(--ink-soft);background:var(--teal-soft);border-radius:12px;padding:14px 16px;}
+  .note b{color:var(--teal);}
+  footer{margin-top:36px;text-align:center;font-size:11.5px;color:var(--ink-soft);line-height:2;}
+  footer .fbook{font-family:"Noto Serif JP",serif;color:var(--navy);font-weight:700;font-size:14px;}
+  footer .fsub{font-family:"Noto Serif JP",serif;color:var(--navy);font-size:12px;}
+  footer .fline{font-family:"Noto Serif JP",serif;color:var(--ink);font-size:12.5px;margin-top:6px;}
+  @media (prefers-reduced-motion: reduce){.seg{transition:none;}}
+  #pwGate{position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,var(--navy) 0%, var(--navy-deep) 100%);display:flex;align-items:center;justify-content:center;padding:24px;}
+  #pwGate .box{max-width:340px;width:100%;text-align:center;}
+  #pwGate h2{font-family:"Noto Serif JP",serif;color:#fff;font-size:20px;margin:0 0 10px;}
+  #pwGate p{color:#D7DCF2;font-size:13px;line-height:1.7;margin:0 0 24px;}
+  #pwGate input{width:100%;text-align:center;letter-spacing:0.6em;font-family:"Noto Sans JP",sans-serif;font-size:28px;font-weight:700;color:var(--navy);border:none;border-radius:12px;padding:14px 10px 14px 16px;background:#fff;}
+  #pwGate input:focus{outline:3px solid var(--gold);}
+  #pwGate button{width:100%;margin-top:14px;padding:13px;background:var(--gold);color:var(--navy);border:none;border-radius:10px;font-family:"Noto Sans JP",sans-serif;font-size:15px;font-weight:700;cursor:pointer;}
+  #pwGate .err{color:#F3B7A6;font-size:12.5px;margin-top:12px;min-height:1.4em;}
+  #pwGate .book{color:#EFE3C4;font-size:12px;margin-top:18px;font-family:"Noto Serif JP",serif;}
+  body.locked{overflow:hidden;}
+  body.locked > header, body.locked > .wrap{display:none;}
+
+
+  /* v12：押しやすさ・読みやすさ・入力チェック・結果の帯 */
+  input[type="number"], .comma-input, select{min-height:46px;}
+  .check-row input{width:26px !important;height:26px !important;}
+  .field-note{font-size:12.5px !important;}
+  .field-label small{font-size:12px !important;}
+  .nissu-warn{font-size:13px;color:var(--danger);background:#FBEDE8;border-left:3px solid var(--danger);border-radius:8px;padding:9px 12px;margin:2px 0 8px;line-height:1.6;}
+  body{padding-bottom:96px !important;}
+  #stickyBar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--navy-deep);color:#fff;padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;justify-content:center;align-items:center;gap:18px;box-shadow:0 -4px 14px rgba(0,0,0,.18);transition:transform .25s ease;}
+  #stickyBar.off{transform:translateY(120%);}
+  body.locked #stickyBar{display:none;}
+  #stickyBar .sb{display:flex;flex-direction:column;line-height:1.25;}
+  #stickyBar .sb-l{font-size:11.5px;color:#C9CFEC;}
+  #stickyBar .sb-v{font-family:"Noto Serif JP",serif;font-weight:700;font-size:19px;color:var(--gold);white-space:nowrap;}
+  #stickyBar button{margin-left:auto;flex:none;min-height:44px;padding:0 14px;border:none;border-radius:10px;background:var(--gold);color:var(--navy);font-family:"Noto Sans JP",sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
+  @media (min-width:700px){#stickyBar button{margin-left:24px;}}
+</style>
+<style>#pwGate{display:none!important;}</style>
+</head>
+<body>
+
+<div id="pwGate">
+  <div class="box">
+    <h2>合言葉を入力してください</h2>
+    <p>本書の読者限定のツールです。<br>本書に記載の合言葉（4桁の数字）を<br>入力してください。</p>
+    <input type="tel" inputmode="numeric" maxlength="4" id="pwInput" autocomplete="off" placeholder="・・・・" aria-label="合言葉（4桁）">
+    <button id="pwSubmit">開く</button>
+    <p class="err" id="pwErr" role="alert"></p>
+    <div class="book">『がんとお金の、ほんとうの話』守安俊明</div>
+  </div>
+</div>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">がん保険・医療保険は、1日いくらあれば足りる？</div>
+    <h1>入院時の必要金額<br>シミュレーター<span class="sub">70歳以上版（70〜74歳・75歳以上）</span></h1>
+    <p>入院すると、1日あたりいくらお金が出ていくのか。その目安を出すツールです。70歳以上の人は、病院の窓口で払う割合（1〜3割）や上限額の決まり方が、70歳未満の人と違います。上から順に、わかるところだけ入れてください。<b style="color:#F1E3C4">わからない欄は、最初から入っている数字（計算の例）のままで大丈夫です。</b>（使い方は本書の資料編の巻頭に、制度のくわしい説明は資料編3章にあります）</p>
+    <div class="book-tag">『がんとお金の、ほんとうの話』守安俊明</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <\!-- ① 治療関連費用 -->
+  <div class="section-title">① 病院に払う治療費</div>
+  <p class="section-sub">日本の健康保険には「高額療養費」という仕組みがあります。<b>1か月（毎月1日〜末日）に病院の窓口で払う治療費には上限があり</b>、どんなに高い治療を受けても、上限より多くは払いません。70〜74歳は国民健康保険か会社の健康保険、75歳以上は後期高齢者医療制度に入っていますが、上限の考え方は同じです。</p>
+  <div class="card">
+    <div class="card-head">
+      <div class="num-badge">1</div>
+      <div>
+        <h3>あなたの「1か月の上限額」を出す</h3>
+        <span class="hint">2026年8月からの金額・70歳以上の方（通院と入院を合わせた、世帯ごとの上限）</span>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">年齢<small>75歳から、入る保険が「後期高齢者医療制度」に変わります</small></div>
+      <div class="input-shell">
+        <select id="age">
+          <option value="70" selected>70〜74歳</option>
+          <option value="75">75歳以上（後期高齢者医療制度）</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">収入の段階<small>住民税の「課税所得」で選びます（会社の健康保険の人は、毎月のお給料の額）</small></div>
+      <div class="input-shell" style="flex:1 1 100%">
+        <select id="shotoku" style="width:100%;font-size:13px">
+          <option value="genIII">現役並みⅢ：690万円以上／月給83万円以上</option>
+          <option value="genII">現役並みⅡ：380万円以上／月給53万〜79万円</option>
+          <option value="genI">現役並みⅠ：145万円以上／月給28万〜50万円</option>
+          <option value="ippan" selected>一般：145万円未満／月給26万円以下</option>
+          <option value="hikazei2">住民税がかからない人Ⅱ</option>
+          <option value="hikazei1">住民税がかからない人Ⅰ</option>
+        </select>
+      </div>
+    </div>
+    <p class="kubun-help">金額は年収ではなく、住民税の通知書にある<b>「課税所得」</b>です。会社の健康保険（協会けんぽ・健保組合など）に入っている70〜74歳の人は、課税所得ではなく、毎月のお給料の額（標準報酬月額。選択肢の「月給」）で選びます。「住民税がかからない人Ⅱ・Ⅰ」の段階は、会社の健康保険の人にもあります。「現役並み」は、働いている世代と同じくらいの所得がある人のことです。多くの人は「一般」に入ります。「住民税がかからない人Ⅰ」は、世帯全員の所得が0円の人（年金だけなら年80万円以下など）です。<b>わからなければ、「限度額適用認定証」を持っている人はその「適用区分」の欄を見るか、入っている健康保険の窓口（国民健康保険は市区町村、75歳以上は後期高齢者医療の窓口）で「高額療養費の区分は何ですか」と聞いてください。</b></p>
+    <div class="field-row">
+      <div class="field-label">病院の窓口で払う割合<small>年齢と収入の段階を選ぶと、自動で入ります</small></div>
+      <div class="input-shell">
+        <select id="futan">
+          <option value="0.1">1割</option>
+          <option value="0.2" selected>2割</option>
+          <option value="0.3">3割</option>
+        </select>
+      </div>
+    </div>
+    <p class="field-note">※ふつうは、現役並みの人は3割、70〜74歳のそれ以外の人は2割、75歳以上のそれ以外の人は1割です。75歳以上で、ある程度の所得がある人は2割なので、選び直してください。保険証（資格確認書）に「負担割合」が書いてあります。</p>
+
+    <label class="check-row">
+      <input type="checkbox" id="tasuu">
+      <span>この1年間に、上限額まで払った月が、もう3回以上ある<small id="tasuuSmall">4回目からは上限額がさらに下がります（「多数回該当」といいます）。治療が長く続いている人向け。初めての入院なら、チェックしなくてOK。</small></span>
+    </label>
+
+    <div class="field-row">
+      <div class="field-label">その月の総医療費（もとの値段）<small>総医療費は、病院でかかった医療費の「もとの値段」。10割負担だった場合の金額を記入</small></div>
+      <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="iryouhi" value="1,000,000"><span class="unit">円</span></div>
+    </div>
+    <p class="field-note">※「その月」は、入院する月の1日から末日まで（カレンダーの1か月）のことです。入院が月をまたぐときは、月ごとに分けて考えます。<br>※わからなければ、100万円のまま試してください（計算の例です）。入院したことがある人は、病院の領収書の「保険」欄の点数の合計に10をかけると、この金額になります。</p>
+    <div class="field-row">
+      <div class="field-label">入院する日数<small>その月のうち、病院に泊まる日数</small></div>
+      <div class="input-shell"><input type="number" id="nissu" min="1" max="31" step="1" value="15" inputmode="numeric"><span class="unit">日</span></div>
+    </div>
+    <p class="field-note">※わからなければ15日のまま。がんで入院した人の平均は約14〜15日です。病気全体で見ると、65歳以上は約35日、75歳以上は約39日と、年をとるほど長くなりがちです（厚生労働省「令和5年患者調査」）。</p>
+    <p id="nissuWarn" class="nissu-warn hidden" role="alert"></p>
+    <div class="subtotal-line">
+      <span class="lab">この月、窓口で払う治療費（上限額）</span>
+      <span class="val" id="genndoOut">―円</span>
+    </div>
+    <div class="subtotal-line">
+      <span class="lab">① 治療費を1日あたりにすると</span>
+      <span class="val" id="out1">―円</span>
+    </div>
+  </div>
+
+  <\!-- ② 入院諸費用 -->
+  <div class="section-title">② 部屋代と食事代</div>
+  <p class="section-sub">個室などの「差額ベッド代」と入院中の食事代は、①の上限の仕組みの外です。<b>上限とは別に、泊まった日数分かかります。</b></p>
+  <div class="card">
+    <div class="card-head">
+      <div class="num-badge">2</div>
+      <div>
+        <h3>部屋代と食事代</h3>
+        <span class="hint">1日あたりの金額</span>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">希望する部屋<small>選ぶと、全国平均の金額が入ります</small></div>
+      <div class="input-shell">
+        <select id="heyaType">
+          <option value="6862" selected>まだわからない（平均 6,862円）</option>
+          <option value="8625">個室（平均 8,625円）</option>
+          <option value="3149">2人部屋（平均 3,149円）</option>
+          <option value="2778">3人部屋（平均 2,778円）</option>
+          <option value="2780">4人部屋（平均 2,780円）</option>
+          <option value="0">追加料金のない大部屋（0円）</option>
+          <option value="free">金額を自分で入れる</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">部屋代（差額ベッド代）<small>病院の案内にある「室料差額」の1日の金額</small></div>
+      <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="beddai" value="6,862"><span class="unit">円</span></div>
+    </div>
+    <p class="field-note">※部屋代がかかるのは、自分から希望して「同意書」にサインした場合だけです。治療のために個室が必要なときや、空きがなくて個室になったときは、払わなくてよいことになっています。（平均額は厚生労働省の調べ、令和6年8月1日時点）</p>
+    <div class="field-row">
+      <div class="field-label">食事代（1日）<small>1食550円 × 3食</small></div>
+      <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="shokuji" value="1,650"><span class="unit">円</span></div>
+    </div>
+    <p class="field-note">※2026年6月からの金額です。住民税がかからない人は、申請すると安くなります。</p>
+    <div class="subtotal-line">
+      <span class="lab">② 部屋代と食事代（1日あたり）</span>
+      <span class="val" id="out2">―円</span>
+    </div>
+  </div>
+
+  <\!-- ③ その他の費用 -->
+  <div class="section-title">③ そのほかの出費</div>
+  <p class="section-sub">パジャマやタオルのレンタル、テレビカード、スマホ代、家族のお見舞いの交通費など。細かい出費を、1日あたりにならした金額です。</p>
+  <div class="card">
+    <div class="card-head">
+      <div class="num-badge">3</div>
+      <div>
+        <h3>そのほかの出費</h3>
+        <span class="hint">1日あたりの金額</span>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">日用品・家族の交通費など<small>入院の準備で買った物も含めて、1日あたりに</small></div>
+      <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="sonota" value="1,000"><span class="unit">円</span></div>
+    </div>
+    <p class="field-note">※わからなければ1,000円のまま。1日1,000〜2,000円くらいが目安です。</p>
+    <div class="subtotal-line">
+      <span class="lab">③ そのほかの出費（1日あたり）</span>
+      <span class="val" id="out3">―円</span>
+    </div>
+  </div>
+
+  <\!-- 内訳 -->
+  <div class="stackwrap">
+    <h3>1日あたりの内訳</h3>
+    <div class="bar-track" role="img" aria-label="1日あたりの費用の内訳">
+      <div class="seg seg-1" id="seg1" style="width:33%"></div>
+      <div class="seg seg-2" id="seg2" style="width:33%"></div>
+      <div class="seg seg-3" id="seg3" style="width:34%"></div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="dot" style="background:var(--navy)"></span>① 治療費</div>
+      <div class="legend-item"><span class="dot" style="background:var(--teal)"></span>② 部屋代と食事代</div>
+      <div class="legend-item"><span class="dot" style="background:var(--gold)"></span>③ そのほかの出費</div>
+    </div>
+  </div>
+
+  <\!-- ④ 先進医療 -->
+  <div class="section-title">④ 先進医療を受ける場合（受けない人は0円のまま）</div>
+  <p class="section-sub">先進医療は、まだ健康保険が使えない新しい治療です。<b>治療代は全額自分で払い、①の上限の仕組みも使えません。</b>がん保険などに「先進医療特約」が付いていれば、そこからお金が出ます。この欄は日数で割らず、最後に1回分としてまとめて足します。例：粒子線治療を先進医療で受けると、約270万〜320万円。</p>
+  <div class="card">
+    <div class="card-head">
+      <div class="num-badge">4</div>
+      <div>
+        <h3>先進医療の治療代と、保険から出るお金</h3>
+        <span class="hint">1回きりの金額</span>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">先進医療の治療代（技術料）<small>受ける予定がなければ0円</small></div>
+      <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="sentan" value="0"><span class="unit">円</span></div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">「先進医療特約」から出るお金<small>保険証券で確かめます。特約がなければ0円</small></div>
+      <div class="input-shell"><input type="text" inputmode="numeric" class="comma-input" id="tokuyaku" value="0"><span class="unit">円</span></div>
+    </div>
+    <div class="subtotal-line">
+      <span class="lab">④ 先進医療で自分が払うお金</span>
+      <span class="val" id="out4">―円</span>
+    </div>
+  </div>
+
+  <\!-- 結果 -->
+  <div class="result" aria-live="polite">
+    <p class="result-label">入院1日あたりに出ていくお金（①＋②＋③）</p>
+    <p class="result-amount"><span class="big" id="dayTotal">―</span>円 / 日</p>
+    <p class="result-caption">がん保険・医療保険の「入院1日あたりの給付金」をいくらにするか考えるときの目安です。</p>
+    <div class="days-row">
+      <label for="stayDays">入院する日数（①で入れた日数が入ります。ここで変えることもできます）</label>
+      <input type="number" id="stayDays" min="1" step="1" value="15">
+    </div>
+    <div class="subtotal-line hidden" id="sentanAddRow">
+      <span class="lab">＋ ④ 先進医療で自分が払うお金</span>
+      <span class="val" id="sentanAddOut">―円</span>
+    </div>
+    <div class="total-stay">
+      <span class="lab">入院中にかかるお金の合計（目安）</span>
+      <span class="val" id="stayTotal">―円</span>
+    </div>
+  </div>
+
+  <\!-- 今日、ひとつだけ -->
+  <div class="today">
+    <h3>今日、ひとつだけ</h3>
+    <p class="lead">数字が分かったら、どれか一つだけ、今日やってみてください。</p>
+    <ul>
+      <li>保険証券を一枚、開いてみる。<small>先進医療特約は付いているか。年齢で給付が変わっていないか。（資料編4章）</small></li>
+      <li>マイナ保険証がなければ、限度額適用認定証の申請書を用意しておく。<small>認定証には有効期限があるので、入院や通院が決まったら申請します。マイナ保険証か認定証があれば、窓口での支払いが、最初から上限額までで済みます。（資料編3章）</small></li>
+      <li>大切な人と、「もしものとき」の話を、一度だけしておく。<small>（資料編12章）</small></li>
+    </ul>
+  </div>
+
+  <div class="note">
+    <b>ご利用にあたって</b>――このツールは、『がんとお金の、ほんとうの話』資料編の巻頭と3章の考え方と数字をもとに、読者が自分で目安を出すためのものです。70歳以上の人向けです（70歳未満の人は「会社員版」か「自営業・フリーランス版」を使ってください）。<br>
+    ・上限額は、2026年8月からの「通院＋入院を合わせた、世帯ごと」の金額です（現役並みⅢ 27万300円＋1％、Ⅱ 17万9,100円＋1％、Ⅰ 8万5,800円＋1％、一般 6万1,500円、住民税がかからない人Ⅱ 2万5,700円、Ⅰ 1万5,700円）。出典：厚生労働省・全国健康保険協会（協会けんぽ）「令和8年8月からの高額療養費制度の見直し」。<br>
+    ・通院だけにかかる別の上限（外来特例）、新しくできた「1年間の上限」、住民税がかからない人の「多数回該当」は入れていません。2027年8月には、さらに見直しが予定されています。<br>
+    ・①〜③は「1か月以内の入院」を前提にした目安です。治療が何か月も続くときは、①〜③は月ごとにかかります。④は治療全体で1回です。<br>
+    ・実際の金額は、病院・治療の内容・入っている保険によって違います。くわしくは、病院の窓口、入っている保険の窓口、がん相談支援センター（だれでも無料）に聞いてください。<br>
+    ・特定の保険商品や病院をすすめるものではありません。
+  </div>
+
+  <footer>
+    <div class="fbook">『がんとお金の、ほんとうの話』</div>
+    <div class="fsub">― FPが患者になって分かったこと ―</div>
+    守安俊明 著
+    <div class="fline">制度は、知って、使って、はじめて味方になる。</div>
+  </footer>
+
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const yen = n => "¥" + Math.round(n).toLocaleString("ja-JP");
+  const parseComma = v => parseFloat((v || "").toString().replace(/[^0-9.]/g, "")) || 0;
+
+  // 金額欄：入力しながらカンマ区切り。カーソル位置も保つ
+  function setupCommaInput(id, onChange){
+    const el = $(id);
+    el.addEventListener("input", () => {
+      const raw = el.value.replace(/[^0-9]/g, "");
+      const caretFromEnd = el.value.length - (el.selectionStart ?? el.value.length);
+      el.value = raw === "" ? "" : Number(raw).toLocaleString("ja-JP");
+      const pos = Math.max(0, el.value.length - caretFromEnd);
+      try { el.setSelectionRange(pos, pos); } catch(e){}
+      onChange();
+    });
+  }
+
+  // 自己負担は「窓口負担（3割など）」と「高額療養費の上限額」の、小さいほう
+  function capOf(t, iryouhi){
+    if (t.threshold === null) return t.base;
+    return t.base + Math.max(0, iryouhi - t.threshold) * t.rate;
+  }
+
+  // ①②③の日額と④の一括額から、結果欄・内訳バーを描く
+  function render(v1, v2, v3, sentanZangaku){
+    $("out1").textContent = yen(v1) + " / 日";
+    $("out2").textContent = yen(v2) + " / 日";
+    $("out3").textContent = yen(v3) + " / 日";
+    $("out4").textContent = yen(sentanZangaku);
+    const total = v1 + v2 + v3;
+    $("dayTotal").textContent = Math.round(total).toLocaleString("ja-JP");
+    let p1 = 33, p2 = 33, p3 = 34;
+    if (total > 0){ p1 = v1/total*100; p2 = v2/total*100; p3 = 100 - p1 - p2; }
+    $("seg1").style.width = p1 + "%"; $("seg2").style.width = p2 + "%"; $("seg3").style.width = p3 + "%";
+    const stayDays = parseFloat($("stayDays").value) || 0;
+    $("sentanAddRow").classList.toggle("hidden", !(sentanZangaku > 0));
+    $("sentanAddOut").textContent = yen(sentanZangaku);
+    $("stayTotal").textContent = yen(total * stayDays + sentanZangaku);
+  }
+
+  // 共通の入力イベント（入院日数の連動、部屋タイプ）
+  function wireCommon(calc){
+    $("nissu").addEventListener("input", () => { const n = parseInt($("nissu").value, 10); if (n >= 1) $("stayDays").value = Math.min(31, n); calc(); });
+    $("stayDays").addEventListener("input", calc);
+    $("heyaType").addEventListener("change", () => {
+      if ($("heyaType").value === "free") { $("beddai").focus(); $("beddai").select(); return; }
+      $("beddai").value = (parseInt($("heyaType").value, 10) || 0).toLocaleString("ja-JP");
+      calc();
+    });
+    $("beddai").addEventListener("input", () => { $("heyaType").value = "free"; });
+  }
+
   // 2026年8月以降・70歳以上（外来＋入院・世帯ごと）
   // 出典：厚生労働省・協会けんぽ「令和8年8月からの高額療養費制度の見直し」
   // 現役並み3区分は、70歳未満の区分ア・イ・ウと同じ計算式。多数回該当は現役並み・一般のみ反映
-  const TABLE_O70 = {
+  const SHOTOKU_TABLE = {
     genIII:   { base: 270300, threshold: 901000, rate: 0.01, tasuu: 140100, gen: true },
     genII:    { base: 179100, threshold: 597000, rate: 0.01, tasuu:  93000, gen: true },
     genI:     { base:  85800, threshold: 286000, rate: 0.01, tasuu:  44400, gen: true },
@@ -601,113 +1652,162 @@
     hikazei1: { base:  15700, threshold: null,   rate: 0,    tasuu:  null },
   };
 
-  const isO70 = () => document.body.dataset.mode === "o70";
-  const isSelf = () => !isO70() && $("hokenType").value === "self";
-
-  // 年齢区分・保険の種類に合わせて、表示を切り替える
-  function updateKubunUI(){
-    const type = $("hokenType").value;
-    const L = KUBUN_LABELS[type];
-    for (const o of $("shotokuU").options){ o.textContent = L.opts[o.value]; }
-    $("kubunSmall").textContent = L.small;
-    $("kubunHelp").innerHTML = L.help;
-    const self = isSelf();
-    $("selfHelper").classList.toggle("hidden", type !== "self");
-    $("selfKoteiRow").classList.toggle("hidden", !self);
-    $("selfWarn").classList.toggle("hidden", !self);
-    $("employeeNote").classList.toggle("hidden", isO70() || self);
-  }
-
-  // 自営業者：確定申告の所得 → 旧ただし書き所得 → 区分（簡易）
-  function helperCalc(apply){
-    const honnin = parseComma($("shotokuHonnin").value);
-    const setai = parseComma($("shotokuSetai").value);
-    const ninzu = Math.max(0, parseInt($("setaiNinzu").value, 10) || 0);
-    const kyu = Math.max(0, honnin - 430000) + Math.max(0, setai - 430000 * ninzu);
-    let k = "e";
-    if (kyu > 9010000) k = "a"; else if (kyu > 6000000) k = "i"; else if (kyu > 2100000) k = "u";
-    $("helperResult").innerHTML = "旧ただし書き所得（世帯合計）＝ <b>" + yen(kyu) + "</b> → 区分 <b>" + KUBUN_NAME[k] + "</b>" + (apply ? "（上の所得区分に反映しました）" : "");
-    if (apply) $("shotokuU").value = k;
-  }
-
-  // 70歳以上：年齢と区分から、窓口負担の割合を自動で入れる（あとから手で変えられる）
+  // 年齢と区分から、窓口負担の割合を自動で入れる（あとから手で変えられる）
   function autoFutan(){
-    const t = TABLE_O70[$("shotokuO").value];
+    const t = SHOTOKU_TABLE[$("shotoku").value];
     $("futan").value = t.gen ? "0.3" : ($("age").value === "75" ? "0.1" : "0.2");
   }
 
   function calc(){
-    const o70 = isO70();
-    const t = o70 ? TABLE_O70[$("shotokuO").value] : TABLE_U70[$("shotokuU").value];
+    const t = SHOTOKU_TABLE[$("shotoku").value];
     const iryouhi = parseComma($("iryouhi").value);
     const canTasuu = t.tasuu !== null;
     $("tasuu").disabled = !canTasuu;
     if (!canTasuu) $("tasuu").checked = false;
     $("tasuuSmall").textContent = canTasuu
-      ? "4回目からは上限が下がります（資料編3章「多数回該当 ― 長引くほど、軽くなる」）"
-      : "住民税非課税の区分は、このツールでは多数回該当を反映していません";
+      ? "4回目からは上限額がさらに下がります（「多数回該当」といいます）。治療が長く続いている人向け。初めての入院なら、チェックしなくてOK。"
+      : "住民税がかからない人の段階では、このツールはこのチェックに対応していません";
     const cap = $("tasuu").checked ? t.tasuu : capOf(t, iryouhi);
-    const rate = o70 ? (parseFloat($("futan").value) || 0.3) : 0.3;
+    const rate = parseFloat($("futan").value) || 0.3;
     const genndo = Math.min(iryouhi * rate, cap);
     $("genndoOut").textContent = yen(genndo) + " / 月";
 
-    const nissu = parseFloat($("nissu").value) || 1;
+    const nissuRaw = parseFloat($("nissu").value);
+    let nissu = nissuRaw;
+    const nw = $("nissuWarn");
+    if (!(nissuRaw >= 1)) { nw.textContent = "入院する日数を、1日以上で入れてください。"; nw.classList.remove("hidden"); nissu = NaN; }
+    else if (nissuRaw > 31) { nw.textContent = "その月に入院する日数は、多くても31日です。入院が月をまたぐときは、月ごとに分けて計算してください（高額療養費の上限は、月ごとにかかります）。ここでは31日として計算しています。"; nw.classList.remove("hidden"); nissu = 31; }
+    else { nw.classList.add("hidden"); }
+    if (isNaN(nissu)) { ["out1","dayTotal","stayTotal"].forEach(id => { $(id).textContent = "―"; }); return; }
     const v1 = genndo / nissu;
     const v2 = parseComma($("beddai").value) + parseComma($("shokuji").value);
-    const v3 = parseComma($("sonota").value) + (isSelf() ? parseComma($("jigyoKotei").value) : 0);
+    const v3 = parseComma($("sonota").value);
     const sentanZangaku = Math.max(0, parseComma($("sentan").value) - parseComma($("tokuyaku").value));
     render(v1, v2, v3, sentanZangaku);
   }
 
-  // 年齢（70歳未満／70歳以上）の切り替え。URLの #u70 / #o70 でも指定できる
-  const MODE_KEY = "gankane_sim_mode";
-  function setMode(mode, remember){
-    if (mode !== "u70" && mode !== "o70") return;
-    document.body.dataset.mode = mode;
-    document.querySelectorAll(".seg-ctrl button").forEach(b => {
-      b.setAttribute("aria-pressed", b.dataset.mode === mode ? "true" : "false");
-    });
-    if (remember) { try { localStorage.setItem(MODE_KEY, mode); } catch(e){} }
-    updateKubunUI();
-    calc();
-  }
-  document.querySelectorAll(".seg-ctrl button").forEach(b => {
-    b.addEventListener("click", () => {
-      setMode(b.dataset.mode, true);
-      try { history.replaceState(null, "", "#" + b.dataset.mode); } catch(e){}
-    });
-  });
-
-  $("hokenType").addEventListener("change", () => { updateKubunUI(); calc(); });
-  $("shotokuU").addEventListener("change", calc);
   $("age").addEventListener("change", () => { autoFutan(); calc(); });
-  $("shotokuO").addEventListener("change", () => { autoFutan(); calc(); });
+  $("shotoku").addEventListener("change", () => { autoFutan(); calc(); });
   $("futan").addEventListener("change", calc);
   $("tasuu").addEventListener("change", calc);
-  ["shotokuHonnin","shotokuSetai"].forEach(id => setupCommaInput(id, () => { helperCalc(true); calc(); }));
-  $("setaiNinzu").addEventListener("input", () => { helperCalc(true); calc(); });
-  ["iryouhi","beddai","shokuji","sonota","jigyoKotei","sentan","tokuyaku"].forEach(id => setupCommaInput(id, calc));
+  ["iryouhi","beddai","shokuji","sonota","sentan","tokuyaku"].forEach(id => setupCommaInput(id, calc));
   wireCommon(calc);
 
   autoFutan();
-  helperCalc(false);
-  (function(){
-    let mode = location.hash.replace("#", "");
-    if (mode !== "u70" && mode !== "o70") {
-      try { mode = localStorage.getItem(MODE_KEY) || "u70"; } catch(e){ mode = "u70"; }
-    }
-    setMode(mode === "o70" ? "o70" : "u70", false);
-  })();
+  calc();
 
+<\/script>
+<script>
+(function(){
+  // 合言葉ゲート（本書 資料編の巻頭「① 使い方 ― 3つのステップ」で届く4桁の合言葉）
+  // ※ページ内に書かれた簡易的な入口です。アクセス管理（セキュリティ）ではありません。
+  const CORRECT = "1192";
+  const STORAGE_KEY = "gankane_sim_unlocked";
+  const body = document.body;
+  const input = document.getElementById("pwInput");
+  const err = document.getElementById("pwErr");
+  const gate = document.getElementById("pwGate");
+  function unlock(){
+    body.classList.remove("locked");
+    gate.style.display = "none";
+    try { localStorage.setItem(STORAGE_KEY, "1"); } catch(e){}
+  }
+  try { if (localStorage.getItem(STORAGE_KEY) === "1") unlock(); } catch(e){}
+  function tryUnlock(){
+    if (input.value === CORRECT) { unlock(); }
+    else { err.textContent = "合言葉が違うようです。もう一度お試しください。"; input.value = ""; input.focus(); }
+  }
+  document.getElementById("pwSubmit").addEventListener("click", tryUnlock);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") tryUnlock(); });
+  input.addEventListener("input", () => { err.textContent = ""; });
+})();
+
+<\/script>
+<div id="stickyBar" class="off">
+  <div class="sb"><span class="sb-l">入院1日あたり</span><span class="sb-v" id="sbDay">―</span></div>
+  <div class="sb"><span class="sb-l">入院中の合計</span><span class="sb-v" id="sbTotal">―</span></div>
+  <button type="button" id="sbGo">結果を見る</button>
+</div>
+<script>
+(function(){
+  const bar=document.getElementById("stickyBar"), res=document.querySelector(".result");
+  const d=document.getElementById("dayTotal"), t=document.getElementById("stayTotal");
+  function sync(){
+    const dv=d.textContent.trim(), tv=t.textContent.trim();
+    document.getElementById("sbDay").textContent = (dv==="―"||dv==="") ? "―" : dv.replace(/^¥/,"")+"円";
+    document.getElementById("sbTotal").textContent = (tv==="―"||tv==="") ? "―" : tv.replace(/^¥/,"").replace(/円$/,"")+"円";
+  }
+  new MutationObserver(sync).observe(d,{childList:true,characterData:true,subtree:true});
+  new MutationObserver(sync).observe(t,{childList:true,characterData:true,subtree:true});
+  sync();
+  let resVisible=false, scrolled=false;
+  let typing=false;
+  function upd(){ bar.classList.toggle("off", resVisible || !scrolled || typing); }
+  document.addEventListener("focusin",e=>{ if(e.target.matches("input,select")){ typing=true; upd(); } });
+  document.addEventListener("focusout",()=>{ typing=false; upd(); });
+  new IntersectionObserver(es=>{ resVisible=es[0].isIntersecting; upd(); },{threshold:0.15}).observe(res);
+  window.addEventListener("scroll",()=>{ scrolled = window.scrollY > 200; upd(); },{passive:true});
+  document.getElementById("sbGo").addEventListener("click",()=>res.scrollIntoView({behavior:"smooth",block:"center"}));
+})();
+<\/script>
+</body>
+</html>
+</script>
+
+<script>
+(function(){
+  const TYPES = ["kaisha","self","senior"];
+  const menu = document.getElementById("menu");
+  const app = document.getElementById("app");
+  const frames = document.getElementById("frames");
+  const sel = document.getElementById("typeSelect");
+  const loaded = {};
+
+  // 一度開いたタイプは iframe を残しておき、切り替えても入力内容が消えないようにする
+  function frameFor(type){
+    if (loaded[type]) return loaded[type];
+    const html = document.getElementById("src-" + type).textContent.replace(/<\\\/script/g, "</script").replace(/<\\!--/g, "<!--");
+    const f = document.createElement("iframe");
+    f.title = sel.querySelector('option[value="' + type + '"]').textContent;
+    f.srcdoc = html;
+    frames.appendChild(f);
+    return (loaded[type] = f);
+  }
+
+  function render(){
+    const type = location.hash.slice(1);
+    if (TYPES.indexOf(type) < 0){
+      app.classList.add("hidden");
+      menu.classList.remove("hidden");
+      window.scrollTo(0, 0);
+      return;
+    }
+    const f = frameFor(type);
+    Object.keys(loaded).forEach(k => loaded[k].classList.toggle("hidden", loaded[k] !== f));
+    sel.value = type;
+    menu.classList.add("hidden");
+    app.classList.remove("hidden");
+  }
+
+  document.querySelectorAll(".type-card").forEach(b =>
+    b.addEventListener("click", () => { location.hash = b.dataset.type; }));
+  sel.addEventListener("change", () => { location.replace("#" + sel.value); });
+  document.getElementById("backBtn").addEventListener("click", () => {
+    history.pushState(null, "", location.pathname + location.search);
+    render();
+  });
+  window.addEventListener("hashchange", render);
+  window.addEventListener("popstate", render);
+  render();
+})();
 </script>
 <script>
 (function(){
-  // 合言葉の入口：メールアドレスを登録 → 自動返信で届く合言葉を入力 → シミュレーターが開く
-  // 登録・照合は Google Apps Script（GAS）のウェブアプリで受けます。合言葉はスプレッドシート側で管理。
+  // 合言葉の入口：本書に記載の合言葉を入力 → シミュレーターが開く（一度開けば、次回からは入力不要）
+  // 照合はページ内で行います（通信なし）。合言葉を変えるときは、下の CORRECT を書き換える。
   // ※静的ページの簡易的な入口です。アクセス管理（セキュリティ）ではありません。
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbzQ_vGLgHm4AaJv6TBgOiW9OBjXG1f5b55WLi67fETKMXdGZ7if_MoRPv79Q7nSW8t-/exec"; // ← GASのウェブアプリURLに置き換える
+  const CORRECT = "1192";
   const PASS_KEY = "gankane_sim_unlocked_v2";
-  const EMAIL_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
   const g = id => document.getElementById(id);
 
   // 開けた記録：localStorage に残す（使えない環境では、そのタブの間だけ sessionStorage）
@@ -726,473 +1826,26 @@
     window.scrollTo(0, 0);
   }
 
-  async function post(params){
-    const res = await fetch(GAS_URL, { method: "POST", body: new URLSearchParams(params) });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    return res.json();
-  }
+  // 全角数字や前後の空白が入っていても通るように整える
+  const normalize = v => (v || "").replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/\s/g, "");
   function say(el, cls, text){ el.className = "gmsg" + (cls ? " " + cls : ""); el.textContent = text; }
 
-  // STEP 1：メールアドレスの登録
-  const regEmail = g("regEmail"), regAgree = g("regAgree"), regBtn = g("regBtn"), regMsg = g("regMsg");
-  let sending = false;
-  const updateReg = () => { regBtn.disabled = sending || !(EMAIL_RE.test(regEmail.value.trim()) && regAgree.checked); };
-  regEmail.addEventListener("input", updateReg);
-  regAgree.addEventListener("change", updateReg);
-
-  g("regForm").addEventListener("submit", async e => {
-    e.preventDefault();
-    if (regBtn.disabled) return;
-    sending = true; updateReg();
-    say(regMsg, "", "送信しています…");
-    try {
-      const r = await post({ action: "register", email: regEmail.value.trim(), website: g("regWebsite").value });
-      if (r.ok){
-        say(regMsg, "ok", "合言葉をメールでお送りしました。数分たっても届かない場合は、迷惑メールフォルダもご確認ください。");
-        g("codeInput").focus();
-      } else if (r.error === "invalid_email"){
-        say(regMsg, "ng", "メールアドレスの形式をご確認ください。");
-      } else {
-        say(regMsg, "ng", "ただいま送信できません。時間をおいて、もう一度お試しください。");
-      }
-    } catch(err){
-      say(regMsg, "ng", "通信できませんでした。電波の状態をご確認のうえ、もう一度お試しください。");
-    } finally {
-      sending = false; updateReg();
-    }
-  });
-
-  // STEP 2：合言葉の入力
+  // STEP 1：合言葉の入力
   const codeInput = g("codeInput"), codeBtn = g("codeBtn"), codeMsg = g("codeMsg");
-  let checking = false;
-  const updateCode = () => { codeBtn.disabled = checking || codeInput.value.trim() === ""; };
-  codeInput.addEventListener("input", updateCode);
+  const updateCode = () => { codeBtn.disabled = codeInput.value.trim() === ""; };
+  codeInput.addEventListener("input", () => { say(codeMsg, "", ""); updateCode(); });
 
-  g("codeForm").addEventListener("submit", async e => {
+  g("codeForm").addEventListener("submit", e => {
     e.preventDefault();
     if (codeBtn.disabled) return;
-    checking = true; updateCode();
-    say(codeMsg, "", "確認しています…");
-    try {
-      const r = await post({ action: "verify", code: codeInput.value });
-      if (r.ok){ savePass(); unlock(); return; }
-      say(codeMsg, "ng", "合言葉が違います。メールに書かれた合言葉をご確認ください。");
-    } catch(err){
-      say(codeMsg, "ng", "通信できませんでした。時間をおいて、もう一度お試しください。");
-    } finally {
-      checking = false; updateCode();
-    }
+    if (normalize(codeInput.value) === CORRECT){ savePass(); unlock(); return; }
+    say(codeMsg, "ng", "合言葉が違います。本書に記載の合言葉をご確認ください。");
+    codeInput.select();
   });
 
   if (hasPassed()) unlock();
 })();
 
-</script>
-
-<div id="helpPop" hidden role="dialog" aria-modal="true" aria-labelledby="hpTitle">
-  <div class="hp-box">
-    <button type="button" class="hp-close" aria-label="閉じる">×</button>
-    <h4 id="hpTitle"></h4>
-    <div id="hpBody"></div>
-    <button type="button" class="hp-ok">閉じる</button>
-  </div>
-</div>
-<script>
-(function(){
-  // 項目名をタップすると、わかりやすい説明をポップアップで出す
-  const HELP = {
- "mode": {
-  "title": "入院するときの年齢",
-  "secs": [
-   [
-    "説明",
-    "70歳を境に、医療費の自己負担の上限と、病院の窓口で払う割合（何割負担か）が変わります。入院するときの年齢で選んでください。"
-   ],
-   [
-    "わからないとき",
-    "入院中に70歳になる方は、入院を始めるときの年齢で選んでください。"
-   ]
-  ]
- },
- "hokenType": {
-  "title": "加入している健康保険",
-  "secs": [
-   [
-    "選択肢",
-    "勤め先の健康保険（会社員・公務員など）／国民健康保険（自営業・フリーランスなど）"
-   ],
-   [
-    "説明",
-    "保険証（資格確認書）に書かれた保険の名前で選んでください。「協会けんぽ」「○○健康保険組合」「○○共済組合」なら勤め先の健康保険、「国民健康保険」なら国民健康保険です。"
-   ],
-   [
-    "わからないとき",
-    "家族の扶養に入っている方は、扶養している家族の保険で選んでください。パートやアルバイトで国民健康保険の方は「国民健康保険」です。"
-   ]
-  ]
- },
- "shotokuU_employee": {
-  "title": "所得区分",
-  "secs": [
-   [
-    "選択肢",
-    "ア（標準報酬月額83万円以上／年収の目安 約1,160万円〜）／イ（53万〜79万円／約770万〜1,160万円）／ウ（28万〜50万円／約370万〜770万円）／エ（26万円以下／〜約370万円）／オ（住民税がかからない方）"
-   ],
-   [
-    "説明",
-    "医療費の自己負担の上限を決める区分です。「標準報酬月額」で決まります。標準報酬月額は、毎年4〜6月の給与（残業代・通勤手当を含む、税金などを引く前の額）の平均をもとに決まる金額です。"
-   ],
-   [
-    "調べ方",
-    "毎年誕生月に届く「ねんきん定期便」に記載があります。勤め先の総務・人事部、または加入している健康保険に問い合わせても確認できます。"
-   ],
-   [
-    "わからないとき",
-    "年収の目安で選んでください。"
-   ]
-  ]
- },
- "shotokuU_self": {
-  "title": "所得区分",
-  "secs": [
-   [
-    "選択肢",
-    "ア（901万円を超える）／イ（600万円を超え、901万円以下）／ウ（210万円を超え、600万円以下）／エ（210万円以下）／オ（住民税がかからない世帯）"
-   ],
-   [
-    "説明",
-    "医療費の自己負担の上限を決める区分です。去年の所得（売上から経費を引いた額）から43万円を引いた金額で決まります。国民健康保険は世帯単位なので、同じ世帯で国民健康保険に入っている家族の分も合計します。"
-   ],
-   [
-    "調べ方",
-    "国民健康保険料（税）の通知書、または確定申告書で確認できます。下の「確定申告の所得から区分を調べる」を使うと自動で選ばれます。"
-   ],
-   [
-    "例",
-    "所得500万円の方（家族はほかの保険）：500万円−43万円＝457万円 → ウ"
-   ]
-  ]
- },
- "shotokuHonnin": {
-  "title": "あなたの去年の所得",
-  "secs": [
-   [
-    "説明",
-    "売上（収入）ではなく、経費や青色申告特別控除を引いた後の「所得」の金額です。"
-   ],
-   [
-    "調べ方",
-    "去年の確定申告書（第一表）の「所得金額等」の「合計」欄に書かれています。"
-   ],
-   [
-    "例",
-    "売上800万円、経費300万円、青色申告特別控除65万円 → 435万円"
-   ]
-  ]
- },
- "shotokuSetai": {
-  "title": "同じ世帯で国民健康保険に入っている家族の所得（合計）",
-  "secs": [
-   [
-    "説明",
-    "配偶者や子どもなど、あなたと同じ国民健康保険に入っている家族の、去年の所得の合計です。会社の健康保険に入っている家族の分は入れません。"
-   ],
-   [
-    "わからないとき",
-    "家族に所得がない、または家族がほかの保険に入っている場合は0円です。"
-   ]
-  ]
- },
- "setaiNinzu": {
-  "title": "その家族の人数",
-  "secs": [
-   [
-    "説明",
-    "あなたを除いて、同じ世帯で国民健康保険に入っている家族の人数です。"
-   ],
-   [
-    "わからないとき",
-    "国民健康保険に入っているのがあなただけなら0人です。"
-   ]
-  ]
- },
- "age": {
-  "title": "年齢",
-  "secs": [
-   [
-    "説明",
-    "75歳になると、保険が「後期高齢者医療制度」に切り替わり、窓口で払う割合などが変わります。入院するときの年齢で選んでください。"
-   ]
-  ]
- },
- "shotokuO": {
-  "title": "所得区分",
-  "secs": [
-   [
-    "選択肢",
-    "現役並みⅢ（年収の目安 約1,160万円〜）／現役並みⅡ（約770万〜1,160万円）／現役並みⅠ（約370万〜770万円）／一般（〜約370万円）／住民税非課税Ⅱ（世帯全員が住民税非課税）／住民税非課税Ⅰ（世帯全員が住民税非課税で、所得がない。年金収入だけなら約80万円以下）"
-   ],
-   [
-    "説明",
-    "医療費の自己負担の上限を決める区分です。住民税の計算に使う所得（課税所得）で決まります。"
-   ],
-   [
-    "調べ方",
-    "保険証（資格確認書）に書かれた負担割合が「3割」なら現役並みです。「1割」「2割」で住民税を払っている方は一般です。くわしくは、住民税の通知書、またはお住まいの市区町村の窓口で確認できます。"
-   ],
-   [
-    "わからないとき",
-    "一般を選んでください。"
-   ]
-  ]
- },
- "futan": {
-  "title": "病院の窓口で払う割合",
-  "secs": [
-   [
-    "説明",
-    "医療費のうち、病院の窓口で自分が払う割合です。年齢と所得区分から自動で入ります。"
-   ],
-   [
-    "調べ方",
-    "保険証（資格確認書）に「負担割合」として書かれています。違っていたら、書かれている割合に選び直してください。"
-   ]
-  ]
- },
- "tasuu": {
-  "title": "これまでの1年間に、医療費が上限に達した月が3回以上ある",
-  "secs": [
-   [
-    "説明",
-    "過去12か月のうち、医療費の自己負担が上限額に達した月が3回以上あれば、4回目からは上限額がさらに下がります（多数回該当）。"
-   ],
-   [
-    "調べ方",
-    "加入している健康保険から届く「高額療養費の支給決定通知書」で確認できます。"
-   ],
-   [
-    "わからないとき",
-    "今回が初めての入院なら、チェックは不要です。途中で加入する保険が変わった場合は、回数は数え直しになります。"
-   ]
-  ]
- },
- "iryouhi": {
-  "title": "1か月にかかる医療費（全額）",
-  "secs": [
-   [
-    "説明",
-    "あなたが窓口で払う額（3割など）ではなく、健康保険から支払われる分も含めた医療費の全額です。差額ベッド代・食事代・先進医療の費用は含めません。"
-   ],
-   [
-    "調べ方",
-    "病院の領収書の「合計点数」に10をかけた金額です（例：50,000点→50万円）。入院前なら、病院の医事課や入退院窓口で目安を聞けます。"
-   ],
-   [
-    "わからないとき",
-    "100万円のままで構いません。上限額があるので、多くの場合、結果は大きく変わりません。"
-   ]
-  ]
- },
- "nissu": {
-  "title": "入院する日数（見込み）",
-  "secs": [
-   [
-    "説明",
-    "今回の入院が何日くらい続くかの見込みです。主治医や病院の説明で聞いた日数を入れてください。"
-   ],
-   [
-    "わからないとき",
-    "15日のままで構いません（がんの平均的な入院日数です）。"
-   ]
-  ]
- },
- "heyaType": {
-  "title": "入院する部屋",
-  "secs": [
-   [
-    "説明",
-    "個室などを希望すると、1日ごとに「差額ベッド代」がかかります。金額は全国の平均です。"
-   ],
-   [
-    "調べ方",
-    "病院の入院案内やホームページの「室料差額」の料金表で確認できます。希望する部屋の金額がわかれば「自由入力」で入れてください。"
-   ],
-   [
-    "わからないとき",
-    "希望しなければ、差額ベッド代のかからない大部屋が基本です。"
-   ]
-  ]
- },
- "beddai": {
-  "title": "差額ベッド代（1日あたり）",
-  "secs": [
-   [
-    "説明",
-    "個室などに入ったときにかかる部屋代です。健康保険はきかず、医療費の上限の対象にもなりません。"
-   ],
-   [
-    "大切なこと",
-    "差額ベッド代は、あなたが「同意書」にサインした場合にだけかかります。治療のためや、病院の都合（大部屋が空いていないなど）で個室になった場合は、払う必要はありません。"
-   ]
-  ]
- },
- "shokuji": {
-  "title": "入院中の食事代（1日あたり）",
-  "secs": [
-   [
-    "説明",
-    "入院中の食事代は全国一律で、1食550円（1日3食で1,650円）です。"
-   ],
-   [
-    "住民税がかからない方",
-    "申請すると1食270円（1日810円）に下がります。入院が90日を超えると1食220円、70歳以上で所得の少ない方は1食130円です。該当する方は金額を入れ直してください。"
-   ]
-  ]
- },
- "sonota": {
-  "title": "そのほかの出費（1日あたり）",
-  "secs": [
-   [
-    "説明",
-    "パジャマ・タオルのレンタル、テレビカード、スマホの通信費、家族のお見舞いの交通費など、入院中にかかる身の回りの出費です。"
-   ],
-   [
-    "例",
-    "入院セットのレンタル1日500円＋テレビカード1日300円＋家族の交通費（往復1,000円を週3回）→ 約1,200円"
-   ],
-   [
-    "わからないとき",
-    "1日1,000〜2,000円が目安です。"
-   ]
-  ]
- },
- "jigyoKotei": {
-  "title": "休業中も出ていくお金（1日あたり）",
-  "secs": [
-   [
-    "説明",
-    "入院で仕事を休んでいる間も払い続ける、お店や事務所の家賃、リース料、生活費などです。自営業の方には、会社員のような休業中の手当（傷病手当金）が原則ありません。"
-   ],
-   [
-    "入れ方",
-    "1か月分の金額を30で割って入れてください。"
-   ],
-   [
-    "例",
-    "1か月に9万円 → 3,000円"
-   ]
-  ]
- },
- "sentan": {
-  "title": "先進医療の費用（総額）",
-  "secs": [
-   [
-    "説明",
-    "先進医療は、国が認めた、まだ健康保険のきかない高度な治療です。技術料は全額自己負担で、医療費の上限の対象にもなりません。"
-   ],
-   [
-    "わからないとき",
-    "先進医療を受ける予定がなければ0円のままにしてください。受ける場合は、病院から示された金額を入れてください（例：粒子線治療 約270万〜320万円）。"
-   ]
-  ]
- },
- "tokuyaku": {
-  "title": "保険から受け取れる先進医療の給付",
-  "secs": [
-   [
-    "説明",
-    "医療保険・がん保険に「先進医療特約」を付けていると、先進医療の費用が保険から支払われます。"
-   ],
-   [
-    "調べ方",
-    "保険証券、または保険会社から毎年届く「契約内容のお知らせ」で確認できます。"
-   ],
-   [
-    "わからないとき",
-    "特約を付けていなければ0円です。"
-   ]
-  ]
- },
- "stayDays": {
-  "title": "入院日数",
-  "secs": [
-   [
-    "説明",
-    "上で入れた入院日数が自動で入ります。1日あたりの金額に、この日数をかけて、入院期間全体の合計額を出します。"
-   ]
-  ]
- }
-};
-  const pop = document.getElementById("helpPop");
-  const box = pop.querySelector(".hp-box");
-  let lastFocus = null;
-
-  function open(key){
-    const h = HELP[key]; if (!h) return;
-    document.getElementById("hpTitle").textContent = h.title;
-    const body = document.getElementById("hpBody");
-    body.innerHTML = "";
-    h.secs.forEach(([lab, txt]) => {
-      const d = document.createElement("div"); d.className = "hp-sec";
-      const l = document.createElement("span"); l.className = "hp-lab"; l.textContent = lab;
-      const t = document.createElement("p"); t.className = "hp-txt"; t.textContent = lab === "選択肢" ? txt.split("／").map(x => "・" + x).join("\n") : txt;
-      d.append(l, t); body.append(d);
-    });
-    lastFocus = document.activeElement;
-    pop.hidden = false; box.scrollTop = 0;
-    document.documentElement.style.overflow = "hidden";
-    pop.querySelector(".hp-close").focus();
-  }
-  function close(){
-    pop.hidden = true;
-    document.documentElement.style.overflow = "";
-    if (lastFocus && lastFocus.focus) lastFocus.focus();
-  }
-  pop.addEventListener("click", e => { if (e.target === pop || e.target.closest(".hp-close,.hp-ok")) close(); });
-  document.addEventListener("keydown", e => { if (e.key === "Escape" && !pop.hidden) close(); });
-
-  function makeBtn(key, name){
-    const b = document.createElement("button");
-    b.type = "button"; b.className = "help-btn"; b.textContent = "?";
-    b.setAttribute("aria-label", name + "の説明を見る");
-    b.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); open(typeof key === "function" ? key() : key); });
-    return b;
-  }
-
-  // 項目名（.field-label）全体をタップ可能にする
-  function wireLabel(label, key){
-    if (!label || label.dataset.help) return;
-    label.dataset.help = "1";
-    const first = label.firstChild;                // 項目名のテキスト
-    const span = document.createElement("span"); span.className = "help-t";
-    span.textContent = first.textContent; label.replaceChild(span, first);
-    const name = span.textContent;
-    label.insertBefore(makeBtn(key, name), span.nextSibling);
-    label.classList.add("has-help");
-    label.addEventListener("click", () => open(typeof key === "function" ? key() : key));
-  }
-  const labelOf = id => { const el = document.getElementById(id); const row = el && el.closest(".field-row"); return row && row.querySelector(".field-label"); };
-
-  const byId = {
-    hokenType: "hokenType",
-    shotokuU: () => document.getElementById("hokenType").value === "self" ? "shotokuU_self" : "shotokuU_employee",
-    shotokuHonnin: "shotokuHonnin", shotokuSetai: "shotokuSetai", setaiNinzu: "setaiNinzu",
-    age: "age", shotokuO: "shotokuO", futan: "futan",
-    iryouhi: "iryouhi", nissu: "nissu", heyaType: "heyaType", beddai: "beddai", shokuji: "shokuji",
-    sonota: "sonota", jigyoKotei: "jigyoKotei", sentan: "sentan", tokuyaku: "tokuyaku",
-  };
-  Object.entries(byId).forEach(([id, key]) => wireLabel(labelOf(id), key));
-
-  // 年齢の選択（見出し）
-  const q = document.querySelector(".mode-pick .q");
-  if (q) q.append(makeBtn("mode", "年齢の選択"));
-  // 多数回該当（チェックボックスの文言。ボタンだけにしてチェックの操作は変えない）
-  const tasuuSpan = document.getElementById("tasuu").nextElementSibling;
-  if (tasuuSpan) tasuuSpan.insertBefore(makeBtn("tasuu", "多数回該当"), tasuuSpan.querySelector("small"));
-  // 結果欄の入院日数
-  const dl = document.querySelector('.days-row label[for="stayDays"]');
-  if (dl) dl.append(makeBtn("stayDays", "入院日数"));
-})();
 </script>
 </body>
 </html>
